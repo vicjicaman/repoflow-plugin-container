@@ -1,13 +1,18 @@
 import _ from 'lodash'
+import path from 'path'
 import {moduleExec} from './utils';
 import {exec, spawn, wait, retry} from '@nebulario/core-process';
 import killTree from 'tree-kill';
 import {event} from './io';
 import * as Request from './request';
 
+export const clean = async (params, cxt) => {
+  return {};
+}
+
 export const init = async (params, cxt) => {
 
-  const {folder, mode, config, dependencies} = params;
+  const {folder, mode, dependencies} = params;
 
   const initHandlerCnf = {
     onOutput: async function(data) {
@@ -22,12 +27,24 @@ export const init = async (params, cxt) => {
     }
   };
 
-  for (const cnfdep of config.dependencies) {
-    const {moduleid, enabled} = cnfdep;
+  for (const cnfdep of dependencies) {
+    const {
+      kind,
+      fullname,
+      config: {
+        build: {
+          moduleid,
+          enabled
+        }
+      }
+    } = cnfdep;
+
+    if (kind !== "dependency") {
+      continue;
+    }
 
     try {
 
-      const {fullname} = _.find(dependencies, {moduleid});
       if (enabled) {
         console.log("######### Linking " + fullname + " to " + moduleid)
 
@@ -62,14 +79,8 @@ export const init = async (params, cxt) => {
   await Request.handle(({
     folder
   }, cxt) => spawn('yarn', [
-    '--ignore-scripts', '--check-files'
+    'install', '--check-files'
   ], {
-    cwd: folder
-  }, initHandlerCnf), params, cxt);
-
-  await Request.handle(({
-    folder
-  }, cxt) => spawn('yarn', ['link'], {
     cwd: folder
   }, initHandlerCnf), params, cxt);
 
@@ -78,49 +89,10 @@ export const init = async (params, cxt) => {
 
 export const build = async (params, cxt) => {
 
-  const state = {
-    started: false,
-    scripts: 0
-  };
+  const {folder, mode, fullname} = params;
 
-  await Request.handle(({
-    folder,
-    mode
-  }, cxt) => spawn('yarn', ['build:watch:' + mode], {
-    cwd: folder
-  }, {
+  const buildHandlerCnf = {
     onOutput: async function(data) {
-
-      if (data.includes("Webpack is watching the files")) {
-        state.scripts++;
-        console.log("Detected script: " + state.scripts);
-      }
-
-      const rebuildedRegEx = new RegExp("Hash: .{20}", "g");
-      const match = rebuildedRegEx.exec(data);
-
-      if (match) {
-        if (!data.includes("ERROR in")) {
-          state.scripts--;
-          console.log("Script to go: " + state.scripts);
-          if (state.started === false && state.scripts === 0) {
-            state.started = true;
-          }
-
-          if (state.started === true) {
-            event("build.out.done", {
-              data
-            }, cxt);
-            return;
-          }
-        } else {
-          event("build.out.error", {
-            data
-          }, cxt);
-          return;
-        }
-      }
-
       event("build.out.building", {
         data
       }, cxt);
@@ -130,9 +102,22 @@ export const build = async (params, cxt) => {
         data
       }, cxt);
     }
-  }), params, cxt);
+  };
 
+  await Request.handle(({
+    folder,
+    fullname,
+    mode
+  }, cxt) => spawn('docker', [
+    'build', '.', '-t', fullname
+  ], {
+    cwd: folder
+  }, buildHandlerCnf), params, cxt);
+
+  event("build.out.done", {}, cxt);
   console.log("EXPECTED OUTPUT FROM FINISHED BUILD REQUEST--------------------------");
+
+  return;
 
 }
 

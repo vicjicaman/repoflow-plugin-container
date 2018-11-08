@@ -31,47 +31,37 @@ export const dependencies = async ({
     };
   }
 
-  const innerPkgDep = generateJSONDependency(fullnameIndex, {
-    kind: "inner",
-    folder,
-    filename: "package.json",
-    paths: {
-      fullname: "name",
-      version: "version"
-    }
-  }, cxt);
-
-  if (innerPkgDep) {
-    dependencies.push(innerPkgDep);
-  }
-
   const packageFile = path.join(folder, "package.json");
 
   if (fs.existsSync(packageFile)) {
     let packageJson = JSON.parse(fs.readFileSync(packageFile, 'utf8'));
-    const secs = ['dependencies', 'devDependencies', 'peerDependencies'];
 
-    for (const s in secs) {
-      const section = secs[s];
+    if (packageJson.name === "container-app") {
+      const secs = ['dependencies'];
 
-      const dependencyid = 'dependency|package.json|';
+      for (const s in secs) {
+        const section = secs[s];
 
-      for (const pkg in packageJson[section]) {
-        if (fullnameIndex[pkg]) {
-          const pathToVersion = section + "." + pkg
-          dependencies.push({
-            dependencyid: dependencyid + pathToVersion,
-            moduleid: fullnameIndex[pkg].moduleid,
-            kind: "dependency",
-            filename: "package.json",
-            path: pathToVersion,
-            fullname: pkg,
-            version: packageJson[section][pkg],
-            pluginid
-          });
+        const dependencyid = 'dependency|package.json|';
+
+        for (const pkg in packageJson[section]) {
+          if (fullnameIndex[pkg]) {
+            const pathToVersion = section + "." + pkg
+            dependencies.push({
+              dependencyid: dependencyid + pathToVersion,
+              moduleid: fullnameIndex[pkg].moduleid,
+              kind: "app",
+              filename: "package.json",
+              path: pathToVersion,
+              fullname: pkg,
+              version: packageJson[section][pkg],
+              pluginid
+            });
+          }
         }
       }
     }
+
   }
 
   return dependencies;
