@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import {event} from './io'
-import {generateJSONDependency} from './utils';
+import {generateJSONDependency, generateRegexDependency} from './utils';
 
 export const dependencies = async ({
   moduleid,
@@ -29,6 +29,34 @@ export const dependencies = async ({
       version,
       moduleid
     };
+  }
+
+  const innerPkgDep = generateJSONDependency(fullnameIndex, {
+    kind: "inner",
+    folder,
+    filename: "container.json",
+    paths: {
+      fullname: "name",
+      version: "version"
+    }
+  }, cxt);
+
+  if (innerPkgDep) {
+    dependencies.push(innerPkgDep);
+  }
+
+  const innerComposeDep = generateRegexDependency(fullnameIndex, {
+    kind: "inner",
+    folder,
+    filename: "docker-compose.yml",
+    regex: {
+      fullname: ".+app:\\s+image:(?:\\s+|)(.+):(?:.+)",
+      version: ".+app:\\s+image:(?:\\s+|)(?:.+):(.+)"
+    }
+  }, cxt);
+
+  if (innerComposeDep) {
+    dependencies.push(innerComposeDep);
   }
 
   const packageFile = path.join(folder, "package.json");

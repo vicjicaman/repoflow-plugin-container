@@ -1,5 +1,7 @@
 import _ from 'lodash'
+import fs from 'fs-extra'
 import path from 'path'
+import YAML from 'yamljs';
 import {moduleExec} from './utils';
 import {exec, spawn, wait, retry} from '@nebulario/core-process';
 import killTree from 'tree-kill';
@@ -7,23 +9,18 @@ import {event} from './io';
 import * as Request from './request';
 
 export const start = async (params, cxt) => {
-
-  const {fullname, dependencies} = params;
+  const {fullname, dependencies, folder, outputPath} = params;
 
   //docker run --rm 919446158824.dkr.ecr.us-east-1.amazonaws.com/repoflow.com/graph
   // -v /c/Users:/myVolData
-  const startParams = [
-    'run',
-    '--rm',
-    '--env-file',
-    './.env',
-    '-p',
-    '4000:4000',
-    '-v',
-    '/home/victor/nodeflow/workspace',
-    '-t',
-    fullname
-  ];
+
+  const filesToCopy = [".env", "docker-compose.yml"];
+
+  for (const compFile of filesToCopy) {
+    const srcDockerCompose = path.join(folder, compFile);
+    const destDockerCompose = path.join(outputPath, compFile);
+    fs.copySync(srcDockerCompose, destDockerCompose);
+  }
 
   const depApp = _.find(dependencies, {kind: "app"});
 
@@ -34,25 +31,22 @@ export const start = async (params, cxt) => {
         build: {
           enabled
         }
+      },
+      module: {
+        folder: appModuleFolder
       }
     } = depApp;
 
-
     console.log("App is " + enabled + " " + depApp.fullname + " will be mounted from module. ");
+    const composePath = path.join(outputPath, "docker-compose.yml");
+    const compose = YAML.load(composePath);
 
-    /*const appDepModId = "nodeflow-local-graph";
-    const appDepFullname = "@nebulario/nodeflow-local-graph";
-    const appDepKind = "app";
+    compose.services.app.volumes.push(path.join(appModuleFolder, "node_modules") + ":/app/node_modules");
+    compose.services.app.volumes.push(path.join(appModuleFolder, "dist") + ":/app/dist");
 
-    if (enabled) { // check if appDepModId is enabled to build
-      startParams.push('-v');
-      const depModFolder = "";
-      const packageDep = path.join(depModFolder, "node_modules");
-      startParams.push(packageDep + ':' + "/app/node_modules");
-      startParams.push('-v');
-      const distDep = path.join(depModFolder, "dist");
-      startParams.push(distDep + ':' + "/app/dist");
-    }*/
+    const ymlContent = YAML.stringify(compose, 4);
+    console.log(ymlContent);
+    fs.writeFileSync(composePath, ymlContent, 'utf8');
 
   }
 
@@ -60,8 +54,10 @@ export const start = async (params, cxt) => {
     folder,
     fullname,
     mode
-  }, cxt) => spawn('docker', startParams, {
-    cwd: folder
+  }, cxt) => spawn('docker-compose', [
+    'up', '--no-color'
+  ], {
+    cwd: outputPath
   }, {
     onOutput: async function(data) {
 

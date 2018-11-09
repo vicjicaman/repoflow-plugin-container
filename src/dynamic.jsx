@@ -38,42 +38,6 @@ export const init = async (params, cxt) => {
         }
       }
     } = cnfdep;
-
-    if (kind !== "dependency") {
-      continue;
-    }
-
-    try {
-
-      if (enabled) {
-        console.log("######### Linking " + fullname + " to " + moduleid)
-
-        await Request.handle(({
-          folder
-        }, cxt) => spawn('yarn', [
-          'link', fullname
-        ], {
-          cwd: folder
-        }, initHandlerCnf), params, cxt);
-
-      } else {
-
-        await Request.handle(({
-          folder
-        }, cxt) => spawn('yarn', [
-          'unlink', fullname
-        ], {
-          cwd: folder
-        }, initHandlerCnf), params, cxt);
-
-      }
-
-    } catch (e) {
-      event("init.error", {
-        data: e.toString()
-      }, cxt);
-    }
-
   }
 
   await Request.handle(({

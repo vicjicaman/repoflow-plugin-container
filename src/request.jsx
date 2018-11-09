@@ -18,7 +18,7 @@ export const handle = async (handler, params, cxt) => {
     while (request.status !== "stopped") {
 
       if (request.commandid === "run.start") {
-        console.log("Request control loop " + request.requestid);
+        //console.log("Request control loop " + request.requestid);
       }
 
       if (request.command === "stop" || request.command === "restart") {

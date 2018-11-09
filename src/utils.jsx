@@ -5,6 +5,51 @@ import YAML from 'yamljs'
 const uuidv4 = require('uuid/v4');
 import {exec, spawn, wait, retry} from '@nebulario/core-process';
 
+export const generateRegexDependency = (fullnameIndex, {
+  kind,
+  folder,
+  filename,
+  regex: {
+    fullname: RegexToFullname,
+    version: RegexToVersion
+  }
+}, cxt) => {
+  const {pluginid} = cxt;
+  const contentFile = path.join(folder, filename);
+
+  if (fs.existsSync(contentFile)) {
+    const content = fs.readFileSync(contentFile, 'utf8');
+
+    const fullnameRegex = new RegExp(RegexToFullname, "gm");
+    const versionRegex = new RegExp(RegexToVersion, "gm");
+
+    const fullnameMatch = fullnameRegex.exec(content);
+    const versionMatch = versionRegex.exec(content);
+
+    if (fullnameMatch && versionMatch) {
+      const fullnameValue = fullnameMatch[1];
+      const versionValue = versionMatch[1];
+
+      const fullnameModule = fullnameIndex[fullnameValue];
+
+      if (fullnameModule) {
+        return {
+          dependencyid: kind + "|" + filename + "|" + RegexToVersion,
+          moduleid: fullnameModule.moduleid,
+          kind,
+          filename,
+          path: RegexToVersion,
+          pluginid,
+          fullname: fullnameValue,
+          version: versionValue
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
 // check thde device!
 export const generateJSONDependency = (fullnameIndex, {
   kind,
@@ -66,6 +111,27 @@ export const syncJSONDependency = (folder, {
     contentFile, isYaml
     ? YAML.stringify(modNative, 10, 2)
     : JSON.stringify(modNative, null, 2));
+}
+
+export const syncRegexDependency = (folder, {
+  filename,
+  path: pathToVersion,
+  version
+}) => {
+
+  const contentFile = path.join(folder, filename);
+  const content = fs.readFileSync(contentFile, 'utf8');
+
+  const versionRegex = new RegExp(pathToVersion);
+  const versionMatch = versionRegex.exec(content);
+
+  if (versionMatch) {
+    const syncFullmatch = versionMatch[0].replace(versionMatch[1], version);
+    const syncContent = content.replace(versionRegex, syncFullmatch);
+    console.log("SYNC REGEX DEPENDENCY");
+    fs.writeFileSync(contentFile, syncContent);
+  }
+
 }
 
 export const saveJson = (pathIn, json) => fs.writeFileSync(pathIn, JSON.stringify(json, null, 2), 'utf8');
