@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import path from 'path'
-import {moduleExec} from './utils';
+import {moduleExec, loadJson} from './utils';
 import {exec, spawn, wait, retry} from '@nebulario/core-process';
 import killTree from 'tree-kill';
 import {event} from './io';
@@ -72,11 +72,14 @@ export const build = async (params, cxt) => {
     folder,
     fullname,
     mode
-  }, cxt) => spawn('docker', [
-    'build', '.', '-t', fullname
-  ], {
-    cwd: folder
-  }, buildHandlerCnf), params, cxt);
+  }, cxt) => {
+    const {version} = loadJson(path.join(folder, "container.json"));
+    return spawn('docker', [
+      'build', '.', '-t', fullname + ":" + version
+    ], {
+      cwd: folder
+    }, buildHandlerCnf);
+  }, params, cxt);
 
   event("build.out.done", {}, cxt);
   console.log("EXPECTED OUTPUT FROM FINISHED BUILD REQUEST--------------------------");

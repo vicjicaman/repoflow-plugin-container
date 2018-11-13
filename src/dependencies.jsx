@@ -64,7 +64,7 @@ export const dependencies = async ({
   if (fs.existsSync(packageFile)) {
     let packageJson = JSON.parse(fs.readFileSync(packageFile, 'utf8'));
 
-    if (packageJson.name === "container-app") {
+    if (packageJson.name === "container") {
       const secs = ['dependencies'];
 
       for (const s in secs) {

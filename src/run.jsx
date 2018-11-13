@@ -8,8 +8,23 @@ import killTree from 'tree-kill';
 import {event} from './io';
 import * as Request from './request';
 
+/* docker run --hostname dns.mageddo --name dns-proxy-server -p 5380:5380 \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-v /etc/resolv.conf:/etc/resolv.conf \
+defreitas/dns-proxy-server */
+
 export const start = async (params, cxt) => {
-  const {fullname, dependencies, folder, outputPath} = params;
+  const {
+    moduleid,
+    fullname,
+    dependencies,
+    folder,
+    outputPath,
+    feature: {
+      featureid,
+      modules
+    }
+  } = params;
 
   //docker run --rm 919446158824.dkr.ecr.us-east-1.amazonaws.com/repoflow.com/graph
   // -v /c/Users:/myVolData
@@ -22,6 +37,9 @@ export const start = async (params, cxt) => {
     fs.copySync(srcDockerCompose, destDockerCompose);
   }
 
+  console.log("DEPS IN PLUGIN: ");
+  console.log(JSON.stringify(modules, null, 2));
+
   const depApp = _.find(dependencies, {kind: "app"});
 
   if (depApp) {
@@ -29,7 +47,8 @@ export const start = async (params, cxt) => {
     const {
       config: {
         build: {
-          enabled
+          enabled,
+          dependencies
         }
       },
       module: {
@@ -41,8 +60,42 @@ export const start = async (params, cxt) => {
     const composePath = path.join(outputPath, "docker-compose.yml");
     const compose = YAML.load(composePath);
 
-    compose.services.app.volumes.push(path.join(appModuleFolder, "node_modules") + ":/app/node_modules");
-    compose.services.app.volumes.push(path.join(appModuleFolder, "dist") + ":/app/dist");
+    console.log("Getting app service for module: " + moduleid)
+
+    if (!compose.services.app.volumes) {
+      compose.services.app.volumes = [];
+    }
+    if (!compose.services.app.environment) {
+      compose.services.app.environment = [];
+    }
+
+    //compose.services.app.volumes.push(path.join(appModuleFolder, "node_modules") + ":/workspace/app/node_modules");
+    for (const featMod of modules) {
+      const {moduleid: featModId, folder} = featMod;
+      compose.services.app.volumes.push(folder + ":/workspace/" + featModId);
+    }
+    const hostname = featureid + "." + moduleid + ".com";
+    compose.services.app.hostname = hostname;
+
+    //compose.services.app.environment.push({VIRTUAL_HOST: hostname});
+    compose.services.app.environment.push("VIRTUAL_HOST=" + hostname);
+    compose.services.app.volumes.push(path.join(appModuleFolder, "node_modules") + ":/workspace/app/node_modules");
+    compose.services.app.volumes.push(path.join(appModuleFolder, "dist") + ":/workspace/app/dist");
+    const featureNetwork = "network-" + featureid;
+    compose.services.app.networks = [featureNetwork];
+    compose.services.app.networks = {
+      [featureNetwork]: {
+        aliases: [hostname]
+      }
+    };
+
+    compose.services.app.extra_hosts = ["localbuild:${DOCKERHOST}"];
+
+    compose.networks = {
+      [featureNetwork]: {
+        external: true
+      }
+    }
 
     const ymlContent = YAML.stringify(compose, 4);
     console.log(ymlContent);
@@ -55,7 +108,10 @@ export const start = async (params, cxt) => {
     fullname,
     mode
   }, cxt) => spawn('docker-compose', [
-    'up', '--no-color'
+    '-p', featureid + "_" + moduleid,
+    'up',
+    '--remove-orphans',
+    '--no-color'
   ], {
     cwd: outputPath
   }, {
