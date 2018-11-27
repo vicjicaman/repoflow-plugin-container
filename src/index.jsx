@@ -14,7 +14,9 @@ import {publish} from './publish';
 const payloadB64 = process.argv[2];
 const cxt = JSON.parse(Buffer.from(payloadB64, 'base64').toString('ascii'));
 cxt.requests = {};
+cxt.status = "ready";
 const {pluginid, requests} = cxt;
+let terminateFlag = false;
 
 process.on('SIGTERM', shutdown('SIGTERM')).on('SIGINT', shutdown('SIGINT')).on('uncaughtException', shutdown('uncaughtException'));
 
@@ -76,6 +78,12 @@ function shutdown(signal) {
     if (err)
       console.error(err.stack || err);
 
+    event("plugin.terminated", {
+      data: "Plugin finished... no more request accepted"
+    }, cxt);
+
+    terminateFlag = true;
+
     setTimeout(() => {
       //console.log('...waited 5s, exiting.');
       process.exit(
@@ -115,25 +123,32 @@ function shutdown(signal) {
           await handleCommand(requestid, commandid, params, reqCxt);
 
         } catch (e) {
-          event("plugin.error", {
-            type: "event.handler",
-            error: e.message
+          event("request.error", {
+            data: e.message
           }, reqCxt);
         }
+      }
+
+      if (evt.event === "finish") {
+        cxt.status = "finish";
       }
     }
 
   });
 
-  while (true) {
-    await wait(5);
+  while (terminateFlag === false || cxt.status === "ready") {
+    await wait(100);
   }
 
-  console.log("FINISHED PLUGIN");
+  event("plugin.finished", {
+    data: "Plugin finished... no more request accepted"
+  }, cxt);
+
+  console.log("FINISHED PLUGIN ----------------------------------------------------------------------- TERMINATED");
 
 })().catch(e => {
   event("plugin.fatal", {
-    error: e.message
+    data: e.message
   }, cxt);
   throw e;
 });

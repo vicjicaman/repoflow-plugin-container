@@ -103,36 +103,44 @@ export const start = async (params, cxt) => {
 
   }
 
-  await Request.handle(({
-    folder,
-    fullname,
-    mode
-  }, cxt) => spawn('docker-compose', [
-    '-p', featureid + "_" + moduleid,
-    'up',
-    '--remove-orphans',
-    '--no-color'
-  ], {
-    cwd: outputPath
-  }, {
-    onOutput: async function(data) {
+  try {
 
-      if (data.includes("Running server at")) {
-        event("run.started", {
+    await Request.handle(({
+      folder,
+      fullname,
+      mode
+    }, cxt) => spawn('docker-compose', [
+      '-p', featureid + "_" + moduleid,
+      'up',
+      '--remove-orphans',
+      '--no-color'
+    ], {
+      cwd: outputPath
+    }, {
+      onOutput: async function(data) {
+
+        if (data.includes("Running at")) {
+          event("run.started", {
+            data
+          }, cxt);
+        }
+
+        event("run.out", {
+          data
+        }, cxt);
+      },
+      onError: async (data) => {
+        event("run.err", {
           data
         }, cxt);
       }
+    }), params, cxt);
 
-      event("run.out", {
-        data
-      }, cxt);
-    },
-    onError: async (data) => {
-      event("run.err", {
-        data
-      }, cxt);
-    }
-  }), params, cxt);
+  } catch (e) {
+    event("run.err", {
+      data: e.toString()
+    }, cxt);
+  }
 
 }
 // Testing device

@@ -57,9 +57,17 @@ export const build = async (params, cxt) => {
 
   const buildHandlerCnf = {
     onOutput: async function(data) {
-      event("build.out.building", {
-        data
-      }, cxt);
+
+      if(data.includes("Successfully tagged")){
+        event("build.out.done", {
+          data
+        }, cxt);
+      }else{
+        event("build.out.building", {
+          data
+        }, cxt);
+      }
+
     },
     onError: async (data) => {
       event("build.err", {
@@ -81,8 +89,8 @@ export const build = async (params, cxt) => {
     }, buildHandlerCnf);
   }, params, cxt);
 
-  event("build.out.done", {}, cxt);
-  console.log("EXPECTED OUTPUT FROM FINISHED BUILD REQUEST--------------------------");
+  //event("build.out.done", {}, cxt);
+  //console.log("EXPECTED OUTPUT FROM FINISHED BUILD REQUEST--------------------------");
 
   return;
 

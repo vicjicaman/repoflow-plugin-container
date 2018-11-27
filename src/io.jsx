@@ -9,13 +9,13 @@ export const getEncodedEvents = (data, cxt) => {
 
 export const event = (event, payload, cxt) => {
   console.log("SENDING EVENT " + event);
-  const {request: {
-      requestid
-    }} = cxt;
+  const {request} = cxt;
 
   const ev = {
     id: uuidv4(),
-    requestid,
+    requestid: request
+      ? request.requestid
+      : null,
     event,
     payload
   }
