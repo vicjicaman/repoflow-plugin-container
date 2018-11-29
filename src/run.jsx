@@ -48,6 +48,7 @@ export const start = async (params, cxt) => {
       config: {
         build: {
           enabled,
+          linked,
           dependencies
         }
       },
@@ -56,7 +57,7 @@ export const start = async (params, cxt) => {
       }
     } = depApp;
 
-    console.log("App is " + enabled + " " + depApp.fullname + " will be mounted from module. ");
+    console.log("App is " + linked + " " + depApp.fullname + " will be mounted from module. ");
     const composePath = path.join(outputPath, "docker-compose.yml");
     const compose = YAML.load(composePath);
 
@@ -69,18 +70,24 @@ export const start = async (params, cxt) => {
       compose.services.app.environment = [];
     }
 
-    //compose.services.app.volumes.push(path.join(appModuleFolder, "node_modules") + ":/workspace/app/node_modules");
-    for (const featMod of modules) {
-      const {moduleid: featModId, folder} = featMod;
-      compose.services.app.volumes.push(folder + ":/workspace/" + featModId);
-    }
     const hostname = featureid + "." + moduleid + ".com";
     compose.services.app.hostname = hostname;
 
     //compose.services.app.environment.push({VIRTUAL_HOST: hostname});
     compose.services.app.environment.push("VIRTUAL_HOST=" + hostname);
-    compose.services.app.volumes.push(path.join(appModuleFolder, "node_modules") + ":/workspace/app/node_modules");
-    compose.services.app.volumes.push(path.join(appModuleFolder, "dist") + ":/workspace/app/dist");
+
+    if (linked) {
+
+      //compose.services.app.volumes.push(path.join(appModuleFolder, "node_modules") + ":/workspace/app/node_modules");
+      for (const featMod of modules) {
+        const {moduleid: featModId, folder} = featMod;
+        compose.services.app.volumes.push(folder + ":/workspace/" + featModId);
+      }
+
+      compose.services.app.volumes.push(path.join(appModuleFolder, "node_modules") + ":/workspace/app/node_modules");
+      compose.services.app.volumes.push(path.join(appModuleFolder, "dist") + ":/workspace/app/dist");
+    }
+
     const featureNetwork = "network-" + featureid;
     compose.services.app.networks = [featureNetwork];
     compose.services.app.networks = {
