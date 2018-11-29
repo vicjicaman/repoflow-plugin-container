@@ -7,13 +7,16 @@ export const publish = async (params, cxt) => {
       type
     }} = params;
   console.log('http://localbuild:8000/build/' + type);
-  const queryLocal = await axios.post('http://localbuild:8000/build/' + type, params);
-  console.log(JSON.stringify(queryLocal.data));
-  const res = queryLocal.data;
+  const response = await axios.post('http://localbuild:8000/build/' + type, params, {responseType: 'stream'});
 
-  if (!res.success) {
-    throw new Error(res.error);
-  }
+  response.pipe(process.stdout);
+  response.on('end', function() {
+    console.log('finished');
+  });
+
+  //if (!res.success) {
+  throw new Error(res.error);
+  //}
 
   return {stdout: res.message, stderr: ""};
 }

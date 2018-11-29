@@ -5,11 +5,10 @@ import {event, getEncodedEvents} from './io';
 
 import {dependencies} from './dependencies';
 import {sync} from './sync';
-import {build} from './build';
-import * as Dynamic from './dynamic';
-import * as Run from './run';
-import {init} from './init';
 import {publish} from './publish';
+import * as Build from './build';
+import * as Run from './run';
+
 
 const payloadB64 = process.argv[2];
 const cxt = JSON.parse(Buffer.from(payloadB64, 'base64').toString('ascii'));
@@ -30,24 +29,16 @@ const handleCommand = async (requestid, commandid, params, cxt) => {
     out = await sync(params, cxt);
   }
 
-  if (commandid === "init") {
-    out = await init(params, cxt);
+  if (commandid === "build.init") {
+    out = await Build.init(params, cxt);
   }
 
-  if (commandid === "build") {
-    out = await build(params, cxt);
+  if (commandid === "build.build") {
+    out = await Build.build(params, cxt);
   }
 
-  if (commandid === "dynamic.init") {
-    out = await Dynamic.init(params, cxt);
-  }
-
-  if (commandid === "dynamic.build") {
-    out = await Dynamic.build(params, cxt);
-  }
-
-  if (commandid === "dynamic.stop") {
-    out = await Dynamic.stop(params, cxt);
+  if (commandid === "build.stop") {
+    out = await Build.stop(params, cxt);
   }
 
   if (commandid === "run.start") {
