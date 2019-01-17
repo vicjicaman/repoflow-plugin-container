@@ -10,7 +10,7 @@ export const start = async (params, cxt) => {
   ], {
     cwd: folder
   }, {
-    onOutput: async function(data) {
+    onOutput: async function({data}) {
 
       if (data.includes("Successfully tagged")) {
         event("build.out.done", {
@@ -23,7 +23,7 @@ export const start = async (params, cxt) => {
       }
 
     },
-    onError: async (data) => {
+    onError: async ({data}) => {
       event("build.err", {
         data
       }, cxt);

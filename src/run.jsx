@@ -115,7 +115,7 @@ export const start = async (params, cxt) => {
   ], {
     cwd: outputPath
   }, {
-    onOutput: async function(data) {
+    onOutput: async function({data}) {
 
       if (data.includes("Running at")) {
         IO.sendEvent("run.started", {
@@ -127,7 +127,7 @@ export const start = async (params, cxt) => {
         data
       }, cxt);
     },
-    onError: async (data) => {
+    onError: async ({data}) => {
       IO.sendEvent("run.err", {
         data
       }, cxt);

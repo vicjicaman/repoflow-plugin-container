@@ -22,12 +22,12 @@ export const init = async (params, cxt) => {
   ], {
     cwd: folder
   }, {
-    onOutput: async function(data) {
+    onOutput: async function({data}) {
       event("init.out", {
         data
       }, cxt);
     },
-    onError: async (data) => {
+    onError: async ({data}) => {
       event("init.err", {
         data
       }, cxt);
