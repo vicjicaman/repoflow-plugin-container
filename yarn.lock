@@ -2,8 +2,9 @@
 # yarn lockfile v1
 
 
-"@nebulario/core-plugin-request@file:../core-plugin-request":
+"@nebulario/core-plugin-request@1.0.1-build-server-services-dev":
   version "1.0.1-build-server-services-dev"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-plugin-request/-/core-plugin-request-1.0.1-build-server-services-dev.tgz#fef9ffcdfadb3d95c90e833ca34bec63672d1b9e"
   dependencies:
     "@nebulario/core-process" "^1.1.41-master"
     babel-runtime "^6.26.0"
