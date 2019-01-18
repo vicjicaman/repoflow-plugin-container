@@ -36,7 +36,7 @@
     "analyze": "webpack --config webpack.config.js --env.analyze"
   },
   "dependencies": {
-    "@nebulario/core-plugin-request": "file:../core-plugin-request",
+    "@nebulario/core-plugin-request": "1.0.1-build-server-services-dev",
     "@nebulario/core-process": "1.1.41-master",
     "axios": "^0.18.0",
     "babel-runtime": "^6.26.0",
