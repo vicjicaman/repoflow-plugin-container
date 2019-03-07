@@ -1,38 +1,49 @@
+import _ from 'lodash'
 import {spawn} from '@nebulario/core-process';
 import {Operation, IO} from '@nebulario/core-plugin-request';
 
 export const init = async (params, cxt) => {
-  const {folder, mode, dependencies} = params;
 
-  for (const cnfdep of dependencies) {
-    const {
-      kind,
+  const {
+    module: {
+      moduleid,
+      mode,
       fullname,
-      config: {
-        build: {
-          moduleid,
-          enabled
+      code: {
+        paths: {
+          absolute: {
+            folder
+          }
         }
       }
-    } = cnfdep;
-  }
+    },
+    modules
+  } = params;
 
-  await Operation.exec('yarn', [
-    'install', '--check-files'
-  ], {
-    cwd: folder
-  }, {
+  const initHandlerCnf = {
     onOutput: async function({data}) {
-      event("init.out", {
+      IO.sendEvent("init.out", {
         data
       }, cxt);
     },
     onError: async ({data}) => {
-      event("init.err", {
+      IO.sendEvent("init.err", {
         data
       }, cxt);
     }
-  }, cxt);
+  };
+
+  const ModInfo = _.find(modules, {moduleid});
+
+  if (ModInfo && ModInfo.config.build.enabled) {
+
+    await Operation.exec('yarn', [
+      'install', '--check-files'
+    ], {
+      cwd: folder
+    }, initHandlerCnf, cxt);
+
+  }
 
   return {};
 }

@@ -10,23 +10,37 @@ import {IO} from '@nebulario/core-plugin-request';
 -v /etc/resolv.conf:/etc/resolv.conf \
 defreitas/dns-proxy-server */
 
-export const start = async (params, cxt) => {
+export const start = (params, cxt) => {
+
   const {
-    moduleid,
-    fullname,
-    dependencies,
-    folder,
-    outputPath,
-    feature: {
-      featureid,
-      modules
-    }
+    module: {
+      moduleid,
+      mode,
+      fullname,
+      code: {
+        paths: {
+          absolute: {
+            folder
+          }
+        },
+        dependencies
+      },
+      instance: {
+        instanceid
+      }
+    },
+    modules
   } = params;
 
   //docker run --rm 919446158824.dkr.ecr.us-east-1.amazonaws.com/repoflow.com/graph
   // -v /c/Users:/myVolData
 
   const filesToCopy = [".env", "docker-compose.yml"];
+  const outputPath = path.join(folder, "dist");
+
+  if (!fs.existsSync(outputPath)) {
+    fs.mkdirSync(outputPath);
+  }
 
   for (const compFile of filesToCopy) {
     const srcDockerCompose = path.join(folder, compFile);
@@ -34,27 +48,26 @@ export const start = async (params, cxt) => {
     fs.copySync(srcDockerCompose, destDockerCompose);
   }
 
-  console.log("DEPS IN PLUGIN: ");
-  console.log(JSON.stringify(modules, null, 2));
+  console.log("DEPS IN PLUGIN: " + instanceid);
+  console.log(JSON.stringify(dependencies, null, 2));
 
   const depApp = _.find(dependencies, {kind: "app"});
 
   if (depApp) {
+    const appMod = _.find(modules, {moduleid: depApp.moduleid})
 
     const {
-      config: {
-        build: {
-          enabled,
-          linked,
-          dependencies
+      code: {
+        paths: {
+          absolute: {
+            folder: appModuleFolder
+          }
         }
       },
-      module: {
-        folder: appModuleFolder
-      }
-    } = depApp;
+      config
+    } = appMod;
 
-    console.log("App is " + linked + " " + depApp.fullname + " will be mounted from module. ");
+    console.log("App is " + config.build.linked + " " + depApp.moduleid + " will be mounted from module. ");
     const composePath = path.join(outputPath, "docker-compose.yml");
     const compose = YAML.load(composePath);
 
@@ -67,28 +80,35 @@ export const start = async (params, cxt) => {
       compose.services.app.environment = [];
     }
 
-    const hostname = featureid + "." + moduleid + ".com";
+    const hostname = instanceid + "." + moduleid + ".com";
     compose.services.app.hostname = hostname;
 
-    //compose.services.app.environment.push({VIRTUAL_HOST: hostname});
-    compose.services.app.environment.push("VIRTUAL_HOST=" + hostname);
-
-    if (linked) {
+    if (config.build.linked) {
 
       //compose.services.app.volumes.push(path.join(appModuleFolder, "node_modules") + ":/workspace/app/node_modules");
       for (const featMod of modules) {
-        const {moduleid: featModId, folder} = featMod;
-        compose.services.app.volumes.push(folder + ":/workspace/" + featModId);
+        const {
+          fullname,
+          type,
+          code: {
+            paths: {
+              absolute: {
+                folder: featModuleFolder
+              }
+            }
+          }
+        } = featMod;
+        if (type === "npm") {
+          compose.services.app.volumes.push(featModuleFolder + ":/app/node_modules/" + fullname);
+        }
+
       }
 
-      compose.services.app.volumes.push(path.join(appModuleFolder, "node_modules") + ":/workspace/app/node_modules");
-      compose.services.app.volumes.push(path.join(appModuleFolder, "dist") + ":/workspace/app/dist");
     }
-
-    const featureNetwork = "network-" + featureid;
-    compose.services.app.networks = [featureNetwork];
+    const instanceNetwork = "network-" + instanceid;
+    compose.services.app.networks = [instanceNetwork];
     compose.services.app.networks = {
-      [featureNetwork]: {
+      [instanceNetwork]: {
         aliases: [hostname]
       }
     };
@@ -96,19 +116,18 @@ export const start = async (params, cxt) => {
     compose.services.app.extra_hosts = ["localbuild:${DOCKERHOST}"];
 
     compose.networks = {
-      [featureNetwork]: {
+      [instanceNetwork]: {
         external: true
       }
     }
 
     const ymlContent = YAML.stringify(compose, 4);
-    console.log(ymlContent);
     fs.writeFileSync(composePath, ymlContent, 'utf8');
-
   }
 
+  // docker network create network-container-dependencies
   return spawn('docker-compose', [
-    '-p', featureid + "_" + moduleid,
+    '-p', instanceid + "_" + moduleid,
     'up',
     '--remove-orphans',
     '--no-color'
@@ -135,3 +154,5 @@ export const start = async (params, cxt) => {
   });
 
 }
+
+/*  */

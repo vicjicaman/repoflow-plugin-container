@@ -3,49 +3,8 @@ import _ from 'lodash';
 import path from 'path';
 import YAML from 'yamljs'
 
-export const dependencies = async ({
-  moduleid,
-  folder,
-  baseline: {
-    modules: baselineModules
-  },
-  modules: modulesLocal
-}, cxt) => {
-  const {pluginid} = cxt;
-  const dependencies = [];
-  const fullnameIndex = {};
-
-  for (const mod of baselineModules) {
-    const {fullname, version, moduleid} = mod;
-    fullnameIndex[fullname] = {
-      version,
-      moduleid
-    };
-  }
-
-  for (const mod of modulesLocal) {
-    const {moduleid, fullname, version} = mod;
-    fullnameIndex[fullname] = {
-      version,
-      moduleid
-    };
-  }
-
-  const innerPkgDep = generateJSONDependency(fullnameIndex, {
-    kind: "inner",
-    folder,
-    filename: "container.json",
-    paths: {
-      fullname: "name",
-      version: "version"
-    }
-  }, cxt);
-
-  if (innerPkgDep) {
-    dependencies.push(innerPkgDep);
-  }
-
-  const innerComposeDep = generateRegexDependency(fullnameIndex, {
+export const getComposeDependency = (folder, cxt) => {
+  return generateRegexDependency({
     kind: "inner",
     folder,
     filename: "docker-compose.yml",
@@ -54,6 +13,23 @@ export const dependencies = async ({
       version: ".+app:\\s+image:(?:\\s+|)(?:.+):(.+)"
     }
   }, cxt);
+}
+
+export const list = async ({
+  module: {
+    code: {
+      paths: {
+        absolute: {
+          folder
+        }
+      }
+    }
+  }
+}, cxt) => {
+  const {pluginid} = cxt;
+  const dependencies = [];
+
+  const innerComposeDep = getComposeDependency(folder, cxt);
 
   if (innerComposeDep) {
     dependencies.push(innerComposeDep);
@@ -62,44 +38,46 @@ export const dependencies = async ({
   const packageFile = path.join(folder, "package.json");
 
   if (fs.existsSync(packageFile)) {
-    let packageJson = JSON.parse(fs.readFileSync(packageFile, 'utf8'));
+    const packageJson = JSON.parse(fs.readFileSync(packageFile, 'utf8'));
+    const dependencyid = 'dependency|package.json|';
 
-    if (packageJson.name === "container") {
-      const secs = ['dependencies'];
+    const secs = ['dependencies'];
 
-      for (const s in secs) {
-        const section = secs[s];
+    for (const s in secs) {
+      const section = secs[s];
 
-        const dependencyid = 'dependency|package.json|';
-
-        for (const pkg in packageJson[section]) {
-          if (fullnameIndex[pkg]) {
-            const pathToVersion = section + "." + pkg
-            dependencies.push({
-              dependencyid: dependencyid + pathToVersion,
-              moduleid: fullnameIndex[pkg].moduleid,
-              kind: "app",
-              filename: "package.json",
-              path: pathToVersion,
-              fullname: pkg,
-              version: packageJson[section][pkg],
-              pluginid
-            });
-          }
-        }
+      for (const pkg in packageJson[section]) {
+        const pathToVersion = section + "." + pkg
+        dependencies.push({
+          dependencyid: dependencyid + pathToVersion,
+          kind: "app",
+          filename: "package.json",
+          path: pathToVersion,
+          fullname: pkg,
+          version: packageJson[section][pkg]
+        });
       }
     }
-
   }
 
   return dependencies;
 }
 
 export const sync = async ({
-  folder,
-  filename,
-  path,
-  version
+  module: {
+    code: {
+      paths: {
+        absolute: {
+          folder
+        }
+      }
+    }
+  },
+  dependency: {
+    filename,
+    path,
+    version
+  }
 }, cxt) => {
 
   if (filename === "docker-compose.yml") {
@@ -111,7 +89,7 @@ export const sync = async ({
   return {};
 }
 
-export const generateRegexDependency = (fullnameIndex, {
+export const generateRegexDependency = ({
   kind,
   folder,
   filename,
@@ -136,64 +114,16 @@ export const generateRegexDependency = (fullnameIndex, {
       const fullnameValue = fullnameMatch[1];
       const versionValue = versionMatch[1];
 
-      const fullnameModule = fullnameIndex[fullnameValue];
-
-      if (fullnameModule) {
-        return {
-          dependencyid: kind + "|" + filename + "|" + RegexToVersion,
-          moduleid: fullnameModule.moduleid,
-          kind,
-          filename,
-          path: RegexToVersion,
-          pluginid,
-          fullname: fullnameValue,
-          version: versionValue
-        };
-      }
-    }
-  }
-
-  return null;
-}
-
-// check thde device!
-export const generateJSONDependency = (fullnameIndex, {
-  kind,
-  folder,
-  filename,
-  paths: {
-    fullname: pathToFullname,
-    version: pathToVersion
-  },
-  isYaml
-}, cxt) => {
-  const {pluginid} = cxt;
-  const contentFile = path.join(folder, filename);
-
-  if (fs.existsSync(contentFile)) {
-    const content = fs.readFileSync(contentFile, 'utf8')
-    const native = isYaml
-      ? YAML.parse(content)
-      : JSON.parse(content);
-
-    const fullnameValue = _.get(native, pathToFullname);
-    const versionValue = _.get(native, pathToVersion);
-
-    const fullnameModule = fullnameIndex[fullnameValue];
-
-    if (fullnameModule) {
       return {
-        dependencyid: kind + "|" + filename + "|" + pathToVersion,
-        moduleid: fullnameModule.moduleid,
+        dependencyid: kind + "|" + filename + "|" + RegexToVersion,
         kind,
         filename,
-        path: pathToVersion,
-        pluginid,
+        path: RegexToVersion,
         fullname: fullnameValue,
         version: versionValue
       };
-    }
 
+    }
   }
 
   return null;

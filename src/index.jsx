@@ -5,6 +5,7 @@ import * as Build from './build';
 import * as Run from './run';
 import {publish} from './publish';
 import {init} from './init';
+import {configure} from './configure';
 
 (async () => {
 
@@ -17,6 +18,7 @@ import {init} from './init';
       start: Run.start
     },
     build: {
+      configure,
       init,
       start: Build.start
     },
