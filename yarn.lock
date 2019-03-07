@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@nebulario/core-plugin-request@1.70.4-license-layout-ui-prod":
-  version "1.70.4-license-layout-ui-prod"
-  resolved "https://registry.yarnpkg.com/@nebulario/core-plugin-request/-/core-plugin-request-1.70.4-license-layout-ui-prod.tgz#092d054d7a4c9d79c843931b47655053a80fcf7f"
+"@nebulario/core-plugin-request@1.70.0-master":
+  version "1.70.0-master"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-plugin-request/-/core-plugin-request-1.70.0-master.tgz#15eeaf18f1ce303aa1dd0c3c1df3d24a947a204d"
   dependencies:
     "@nebulario/core-process" "1.70.0-master"
     babel-runtime "^6.26.0"
