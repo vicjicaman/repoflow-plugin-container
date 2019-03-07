@@ -1,30 +1,44 @@
 import {spawn} from '@nebulario/core-process';
 import {Operation, IO} from '@nebulario/core-plugin-request';
+import {getComposeDependency} from './dependencies'
 
-export const start = async (params, cxt) => {
-  const {folder, mode, fullname} = params;
+export const start = (params, cxt) => {
 
-  const {version} = loadJson(path.join(folder, "container.json"));
+  const {
+    module: {
+      code: {
+        paths: {
+          absolute: {
+            folder
+          }
+        }
+      }
+    },
+    modules
+  } = params;
+
+  const dep = getComposeDependency(folder, cxt);
+
   return spawn('docker', [
-    'build', '.', '-t', fullname + ":" + version
+    'build', '.', '-t', dep.fullname + ":" + dep.version
   ], {
     cwd: folder
   }, {
     onOutput: async function({data}) {
 
       if (data.includes("Successfully tagged")) {
-        event("build.out.done", {
+        IO.sendEvent("build.out.done", {
           data
         }, cxt);
       } else {
-        event("build.out.building", {
+        IO.sendEvent("build.out.building", {
           data
         }, cxt);
       }
 
     },
     onError: async ({data}) => {
-      event("build.err", {
+      IO.sendEvent("build.err", {
         data
       }, cxt);
     }

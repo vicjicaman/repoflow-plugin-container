@@ -4,7 +4,9 @@ import {IO} from '@nebulario/core-plugin-request';
 
 export const publish = async (params, cxt) => {
   const {
-    folder,
+    publish: {
+      branchid
+    },
     module: {
       moduleid,
       type,
@@ -12,8 +14,13 @@ export const publish = async (params, cxt) => {
       version,
       fullname,
       url,
-      commitid,
-      branchid
+      code: {
+        paths: {
+          relative: {
+            folder: relativeFolder
+          }
+        }
+      }
     }
   } = params;
 
@@ -24,18 +31,18 @@ export const publish = async (params, cxt) => {
     version,
     fullname,
     url,
-    commitid,
     branchid,
-    folder
+    folder: relativeFolder
   }, {responseType: 'stream'});
 
+  let publishOutput = null;
   let publishStreamFinished = false;
-  let publishStreamError = false;
+  let publishStreamError = null;
 
   response.data.on('error', (data) => {
     console.log("STREAM_PUBLISH_ERROR");
     publishStreamError = data.toString();
-    event("publish.error", {
+    IO.sendEvent("publish.error", {
       data: data.toString()
     }, cxt);
   });
@@ -43,19 +50,18 @@ export const publish = async (params, cxt) => {
   response.data.on('data', (raw) => {
     console.log("STREAM_PUBLISH_OUTPUT");
     const rawString = raw.toString();
-    let data = {};
 
     try {
-      data = JSON.parse(raw.toString())
+      publishOutput = JSON.parse(raw.toString())
     } catch (e) {
       console.log("STREAM_PUBLISH_PARSE:" + rawString);
     }
 
-    if (data.error) {
+    if (publishOutput.error) {
       publishStreamError = data.error;
     }
 
-    event("publish.out", {
+    IO.sendEvent("publish.out", {
       data: rawString
     }, cxt);
 
@@ -63,16 +69,20 @@ export const publish = async (params, cxt) => {
 
   response.data.on('end', function() {
     publishStreamFinished = true;
-    event("publish.finished", {}, cxt);
+    IO.sendEvent("publish.finished", {}, cxt);
   });
 
-  while (publishStreamFinished === false) {
+  while (publishStreamFinished === false && publishStreamError === null) {
     await wait(100);
   }
 
-  if (publishStreamError) {
-    return {stdout: "", stderr: publishStreamError};
+  if (publishOutput !== null) {
+    return {
+      ...publishOutput,
+      error: publishStreamError
+    };
+  } else {
+    return {error: "INVALID_PUBLISH_OUTPUT"};
   }
 
-  return {stdout: "published", stderr: ""};
 }
