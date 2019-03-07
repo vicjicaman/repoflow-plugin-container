@@ -2,11 +2,8 @@ import _ from 'lodash'
 import fs from 'fs-extra'
 import path from 'path'
 import YAML from 'yamljs';
-import {moduleExec} from './utils';
-import {exec, spawn, wait, retry} from '@nebulario/core-process';
-import killTree from 'tree-kill';
-import {event} from './io';
-import * as Request from './request';
+import {spawn} from '@nebulario/core-process';
+import {IO} from '@nebulario/core-plugin-request';
 
 /* docker run --hostname dns.mageddo --name dns-proxy-server -p 5380:5380 \
 -v /var/run/docker.sock:/var/run/docker.sock \
@@ -110,60 +107,31 @@ export const start = async (params, cxt) => {
 
   }
 
-  try {
+  return spawn('docker-compose', [
+    '-p', featureid + "_" + moduleid,
+    'up',
+    '--remove-orphans',
+    '--no-color'
+  ], {
+    cwd: outputPath
+  }, {
+    onOutput: async function({data}) {
 
-    await Request.handle(({
-      folder,
-      fullname,
-      mode
-    }, cxt) => spawn('docker-compose', [
-      '-p', featureid + "_" + moduleid,
-      'up',
-      '--remove-orphans',
-      '--no-color'
-    ], {
-      cwd: outputPath
-    }, {
-      onOutput: async function(data) {
-
-        if (data.includes("Running at")) {
-          event("run.started", {
-            data
-          }, cxt);
-        }
-
-        event("run.out", {
-          data
-        }, cxt);
-      },
-      onError: async (data) => {
-        event("run.err", {
+      if (data.includes("Running at")) {
+        IO.sendEvent("run.started", {
           data
         }, cxt);
       }
-    }), params, cxt);
 
-  } catch (e) {
-    event("run.err", {
-      data: e.toString()
-    }, cxt);
-  }
+      IO.sendEvent("run.out", {
+        data
+      }, cxt);
+    },
+    onError: async ({data}) => {
+      IO.sendEvent("run.err", {
+        data
+      }, cxt);
+    }
+  });
 
-}
-// Testing device
-export const restart = async ({
-  requestid
-}, cxt) => {
-  Request.restart({
-    requestid
-  }, cxt);
-}
-
-export const stop = async ({
-  requestid
-}, cxt) => {
-
-  Request.stop({
-    requestid
-  }, cxt);
 }

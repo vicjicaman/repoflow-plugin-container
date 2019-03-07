@@ -1,11 +1,11 @@
 {
   "name": "@nebulario/repoflow-plugin-container",
-  "version": "1.0.1-master",
+  "version": "1.70.0-master",
   "description": "Base for nodes",
   "main": "./dist/index.js",
   "repository": "github.com:vicjicaman/core-render-stateful-server.git",
   "author": "Victor Jimenez <vic@nodeflow.io>",
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "6",
@@ -33,12 +33,11 @@
     "start:dev": "NODE_ENV=\"development\" node ./dist/index.js",
     "build:watch:prod": "yarn build:prod --watch",
     "build:watch:dev": "yarn build:dev --watch",
-    "analyze": "webpack --config webpack.config.js --env.analyze",
-    "prepublish": "yarn build:prod"
+    "analyze": "webpack --config webpack.config.js --env.analyze"
   },
   "dependencies": {
-    "@nebulario/core-logger": "^1.0.1-master",
-    "@nebulario/core-process": "^1.0.0-master",
+    "@nebulario/core-plugin-request": "1.70.0-master",
+    "@nebulario/core-process": "1.70.0-master",
     "axios": "^0.18.0",
     "babel-runtime": "^6.26.0",
     "bluebird": "^3.5.1",

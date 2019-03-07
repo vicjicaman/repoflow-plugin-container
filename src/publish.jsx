@@ -1,11 +1,10 @@
-import {moduleExec} from './utils'
-import {wait, retry} from '@nebulario/core-process';
+import {wait} from '@nebulario/core-process';
 import axios from 'axios'
-import {event} from './io';
+import {IO} from '@nebulario/core-plugin-request';
 
 export const publish = async (params, cxt) => {
   const {
-    keyPath,
+    folder,
     module: {
       moduleid,
       type,
@@ -27,7 +26,7 @@ export const publish = async (params, cxt) => {
     url,
     commitid,
     branchid,
-    keyPath
+    folder
   }, {responseType: 'stream'});
 
   let publishStreamFinished = false;
