@@ -20,7 +20,11 @@ export const start = (params, cxt) => {
   const dep = getComposeDependency(folder, cxt);
 
   return spawn('docker', [
-    'build', '.', '-t', dep.fullname + ":" + dep.version
+    'build', '.',
+    '-t',
+    dep.fullname + ":" + dep.version,
+    '-t',
+    dep.fullname + ":linked"
   ], {
     cwd: folder
   }, {
