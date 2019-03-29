@@ -3,8 +3,7 @@ import fs from 'fs-extra'
 import path from 'path'
 import YAML from 'yamljs';
 import {spawn} from '@nebulario/core-process';
-import {IO} from '@nebulario/core-plugin-request';
-import {get as getEnv, replace as replaceEnv} from './env'
+import {IO, Config} from '@nebulario/core-plugin-request';
 
 /* docker run --hostname dns.mageddo --name dns-proxy-server -p 5380:5380 \
 -v /var/run/docker.sock:/var/run/docker.sock \
@@ -75,7 +74,7 @@ export const start = (params, cxt) => {
     "REPOFLOW_MODULE_ID": moduleid
   };
 
-  const DotEnv = getEnv(folder, RepoEnv);
+  const DotEnv = Config.get(folder, ".env", RepoEnv);
 
   console.log("DOT_ENV")
   console.log(JSON.stringify(DotEnv, null, 2));
@@ -93,7 +92,7 @@ export const start = (params, cxt) => {
     //fs.copySync(srcDockerCompose, destDockerCompose);
 
     const raw = fs.readFileSync(srcDockerCompose, "utf8");
-    const convert = replaceEnv(raw, DotEnv);
+    const convert = Config.replace(raw, DotEnv);
 
     fs.writeFileSync(destDockerCompose, convert, "utf8");
   }

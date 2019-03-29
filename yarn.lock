@@ -2,14 +2,9 @@
 # yarn lockfile v1
 
 
-"@nebulario/core-plugin-request@1.70.1-master":
-  version "1.70.1-master"
-  resolved "https://registry.yarnpkg.com/@nebulario/core-plugin-request/-/core-plugin-request-1.70.1-master.tgz#0705bdc6eb3fc676ebd53f257ca17702575a5111"
-  dependencies:
-    "@nebulario/core-process" "1.70.0-master"
-    babel-runtime "^6.26.0"
-    bluebird "^3.5.1"
-    tree-kill "^1.2.0"
+"@nebulario/core-plugin-request@link:../core-plugin-request":
+  version "0.0.0"
+  uid ""
 
 "@nebulario/core-process@1.70.0-master":
   version "1.70.0-master"

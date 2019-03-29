@@ -164,7 +164,6 @@ export const syncRegexDependency = (folder, {
   if (versionMatch) {
     const syncFullmatch = versionMatch[0].replace(versionMatch[1], version);
     const syncContent = content.replace(versionRegex, syncFullmatch);
-    console.log("SYNC REGEX DEPENDENCY");
     fs.writeFileSync(contentFile, syncContent);
   }
 
