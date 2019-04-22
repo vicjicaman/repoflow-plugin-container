@@ -19,18 +19,25 @@ export const start = (params, cxt) => {
 
   const dep = getComposeDependency(folder, cxt);
 
+/*
+KUBE env
+
+{
+  DOCKER_TLS_VERIFY: "1",
+  DOCKER_HOST: "tcp://192.168.99.100:2376",
+  DOCKER_CERT_PATH: "/home/victor/.minikube/certs",
+  DOCKER_API_VERSION: "1.35"
+}
+
+*/
+
   return spawn('docker', [
     'build', '.', '-t', dep.fullname + ":" + dep.version,
     '-t',
     dep.fullname + ":linked"
   ], {
     cwd: folder,
-    env: {
-      DOCKER_TLS_VERIFY: "1",
-      DOCKER_HOST: "tcp://192.168.99.100:2376",
-      DOCKER_CERT_PATH: "/home/victor/.minikube/certs",
-      DOCKER_API_VERSION: "1.35"
-    }
+    env: {}
   }, {
     onOutput: async function({data}) {
 
