@@ -73,12 +73,16 @@ export const sync = async ({
       }
     }
   },
+  dependency,
   dependency: {
     filename,
     path,
     version
   }
 }, cxt) => {
+
+  console.log("DEPENDENCY IN CONTAINER");
+  console.log(JSON.stringify(dependency, null, 2));
 
   if (filename === "docker-compose.yml") {
     syncRegexDependency(folder, {filename, path, version});
