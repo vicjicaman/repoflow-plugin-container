@@ -1,37 +1,42 @@
 import {
+  wait,
   spawn,
   exec
 } from '@nebulario/core-process';
 import {
   Operation,
-  IO
+  IO,
+  JSON as JUtils,
+  Config,
+  Repository,
+  Watcher
 } from '@nebulario/core-plugin-request';
 import {
   getComposeDependency
 } from './dependencies'
 import _ from 'lodash'
+import fs from 'fs-extra'
+import path from 'path'
+import YAML from 'yamljs';
 
 export const init = async (params, cxt) => {
 
   const {
     performer: {
-      instanced
-    }
-  } = params;
-
-  if (!instanced) {
-    throw new Error("PERFORMER_NOT_INSTANCED");
-  }
-
-  const {
-    code: {
-      paths: {
-        absolute: {
-          folder
+      type,
+      code: {
+        paths: {
+          absolute: {
+            folder
+          }
         }
       }
     }
-  } = instanced;
+  } = params;
+
+  if (type !== "instanced") {
+    throw new Error("PERFORMER_NOT_INSTANCED");
+  }
 
 
   try {
@@ -68,25 +73,22 @@ export const start = (params, cxt) => {
 
   const {
     performer: {
-      instanced
+      type,
+      code
     }
   } = params;
 
-  if (!instanced) {
+  if (type !== "instanced") {
     throw new Error("PERFORMER_NOT_INSTANCED");
   }
 
   const {
-    code: {
-      paths: {
-        absolute: {
-          folder
-        }
+    paths: {
+      absolute: {
+        folder
       }
     }
-  } = instanced;
-
-  const dep = getComposeDependency(folder, cxt);
+  } = code;
 
   /*
   KUBE env
@@ -100,35 +102,123 @@ export const start = (params, cxt) => {
 
   */
 
-  return spawn('docker', [
-    'build', '.', '-t', dep.fullname + ":" + dep.version,
-    '-t',
-    dep.fullname + ":linked"
-  ], {
-    cwd: folder,
-    env: {}
-  }, {
-    onOutput: async function({
-      data
-    }) {
+  const dockerFile = path.join(folder, "Dockerfile");
 
-      if (data.includes("Successfully tagged")) {
-        IO.sendEvent("done", {
-          data
-        }, cxt);
-      } else {
-        IO.sendEvent("out", {
-          data
-        }, cxt);
-      }
+  const watcher = async (operation, cxt) => {
 
-    },
-    onError: async ({
-      data
-    }) => {
-      IO.sendEvent("warning", {
-        data
+    const {
+      operationid
+    } = operation;
+
+    await wait(100);
+
+    /*IO.sendEvent("started", {
+      operationid,
+      data: ""
+    }, cxt);*/
+
+
+    IO.sendEvent("out", {
+      operationid,
+      data: "Watching changes for " + dockerFile
+    }, cxt);
+
+    await build(operation, params, cxt);
+    const watcher = Watcher.watch(dockerFile, () => {
+
+      IO.sendEvent("out", {
+        operationid,
+        data: "Dockerfile changed..."
       }, cxt);
+
+      build(operation, params, cxt);
+
+    })
+
+    while (operation.status !== "stopping") {
+      /*IO.sendEvent("out", {
+        operationid,
+        data: "..."
+      }, cxt);*/
+      await wait(2500);
     }
-  });
+
+    watcher.close();
+    await wait(100);
+
+    IO.sendEvent("stopped", {
+      operationid,
+      data: ""
+    }, cxt);
+  }
+
+
+  return {
+    promise: watcher,
+    process: null
+  };
+
+}
+
+
+
+const build = async (operation, params, cxt) => {
+
+  const {
+    performer: {
+      code: {
+        paths: {
+          absolute: {
+            folder
+          }
+        }
+      }
+    }
+  } = params;
+  const {
+    operationid
+  } = operation;
+
+  const dep = getComposeDependency(folder, cxt);
+
+  try {
+
+    IO.sendEvent("out", {
+      operationid,
+      data: "Start building container..."
+    }, cxt);
+
+    try {
+
+      const {
+        stdout,
+        stderr
+      } = await exec(['docker build . -t ' + dep.fullname + ":" + dep.version + ' -t ' + dep.fullname + ":linked"], {
+        cwd: folder
+      }, {}, cxt);
+
+      stdout && IO.sendEvent("done", {
+        data: stdout
+      }, cxt);
+
+      stderr && IO.sendEvent("warning", {
+        data: stderr
+      }, cxt);
+
+    } catch (e) {
+      IO.sendEvent("error", {
+        data: e.toString()
+      }, cxt);
+      throw e;
+    }
+
+  } catch (e) {
+    IO.sendEvent("error", {
+      operationid,
+      data: e.toString()
+    }, cxt);
+  }
+
+
+
 }
