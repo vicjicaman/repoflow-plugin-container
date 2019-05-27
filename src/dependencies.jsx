@@ -73,12 +73,16 @@ export const sync = async ({
       }
     }
   },
+  dependency,
   dependency: {
     filename,
     path,
     version
   }
 }, cxt) => {
+
+  console.log("DEPENDENCY IN CONTAINER");
+  console.log(JSON.stringify(dependency, null, 2));
 
   if (filename === "docker-compose.yml") {
     syncRegexDependency(folder, {filename, path, version});
@@ -164,7 +168,6 @@ export const syncRegexDependency = (folder, {
   if (versionMatch) {
     const syncFullmatch = versionMatch[0].replace(versionMatch[1], version);
     const syncContent = content.replace(versionRegex, syncFullmatch);
-    console.log("SYNC REGEX DEPENDENCY");
     fs.writeFileSync(contentFile, syncContent);
   }
 
