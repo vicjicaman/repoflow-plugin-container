@@ -13,7 +13,6 @@ import {publish} from './publish';
       sync: Dependencies.sync
     },
     run: {
-      start: Run.start
     },
     build: {
       init: Build.init,
