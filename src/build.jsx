@@ -11,9 +11,7 @@ import {
   Repository,
   Watcher
 } from '@nebulario/core-plugin-request';
-import {
-  getComposeDependency
-} from './dependencies'
+import * as Dependencies from './dependencies'
 import _ from 'lodash'
 import fs from 'fs-extra'
 import path from 'path'
@@ -179,7 +177,25 @@ const build = async (operation, params, cxt) => {
     operationid
   } = operation;
 
-  const dep = getComposeDependency(folder, cxt);
+  const deps = await Dependencies.list({
+    module: {
+      code: {
+        paths: {
+          absolute: {
+            folder
+          }
+        }
+      }
+    }
+  }, cxt);
+
+  const dep = _.find(deps, {
+    kind: "inner"
+  });
+
+  if(!dep){
+    return null;
+  }
 
   try {
 
@@ -192,8 +208,8 @@ const build = async (operation, params, cxt) => {
 
       const {
         stdout,
-        stderr
-      } = await exec(['docker build . -t ' + dep.fullname + ":" + dep.version + ' -t ' + dep.fullname + ":linked"], {
+        stderr /* --no-cache */
+      } = await exec(['docker build .  -t ' + dep.fullname + ":" + dep.version + ' -t ' + dep.fullname + ":linked"], {
         cwd: folder
       }, {}, cxt);
 
