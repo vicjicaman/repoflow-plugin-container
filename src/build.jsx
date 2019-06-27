@@ -209,7 +209,7 @@ const build = async (operation, params, cxt) => {
       const {
         stdout,
         stderr /* --no-cache */
-      } = await exec(['docker build .  -t ' + dep.fullname + ":" + dep.version + ' -t ' + dep.fullname + ":linked"], {
+      } = await exec(['docker build  -t ' + dep.fullname + ":" + dep.version + ' -t ' + dep.fullname + ":linked --build-arg CACHEBUST=$(date +%s) ."], {
         cwd: folder
       }, {}, cxt);
 
