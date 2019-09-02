@@ -193,7 +193,7 @@ const build = async (operation, params, cxt) => {
     kind: "inner"
   });
 
-  if(!dep){
+  if (!dep) {
     return null;
   }
 
@@ -210,7 +210,13 @@ const build = async (operation, params, cxt) => {
         stdout,
         stderr /* --no-cache */
       } = await exec(['docker build  -t ' + dep.fullname + ":" + dep.version + ' -t ' + dep.fullname + ":linked --build-arg CACHEBUST=$(date +%s) ."], {
-        cwd: folder
+        cwd: folder,
+        env: {
+          DOCKER_TLS_VERIFY: "1",
+          DOCKER_HOST: "tcp://192.168.99.103:2376",
+          DOCKER_CERT_PATH: "/home/victor/.minikube/certs",
+          DOCKER_API_VERSION: "1.35"
+        }
       }, {}, cxt);
 
       stdout && IO.sendEvent("done", {
