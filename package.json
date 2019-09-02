@@ -1,6 +1,6 @@
 {
   "name": "@nebulario/repoflow-plugin-container",
-  "version": "1.70.0-plugins-local-prod",
+  "version": "1.70.10-master",
   "description": "Base for nodes",
   "main": "./dist/index.js",
   "repository": "github.com:vicjicaman/core-render-stateful-server.git",
