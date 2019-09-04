@@ -26,6 +26,17 @@
     lodash "^4.17.4"
     uuid "^3.3.2"
 
+"@nebulario/core-process@1.70.1-master":
+  version "1.70.1-master"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-process/-/core-process-1.70.1-master.tgz#0f6b7eb56e87d663c551fccc97433b1f6088440a"
+  integrity sha512-hN2k0dGItpzqs9TqQNa+aOGIOkT5PlIevE+lQKii7EzaB/O4DGpnIzkLaMVhFvC2A8CiT16N7HvchIpztr6SUA==
+  dependencies:
+    babel-runtime "^6.26.0"
+    bluebird "^3.5.1"
+    child-process-promise "^2.2.1"
+    lodash "^4.17.4"
+    uuid "^3.3.2"
+
 abbrev@1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/abbrev/-/abbrev-1.1.1.tgz#f8f2c887ad10bf67f634f005b6987fed3179aac8"
