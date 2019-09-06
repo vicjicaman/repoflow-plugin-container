@@ -213,9 +213,8 @@ const build = async (operation, params, cxt) => {
         cwd: folder,
         env: {
           DOCKER_TLS_VERIFY: "1",
-          DOCKER_HOST: "tcp://192.168.99.103:2376",
-          DOCKER_CERT_PATH: "/home/victor/.minikube/certs",
-          DOCKER_API_VERSION: "1.35"
+          DOCKER_HOST: "tcp://192.168.99.107:2376",
+          DOCKER_CERT_PATH: "/home/victor/.minikube/certs"
         }
       }, {}, cxt);
 
