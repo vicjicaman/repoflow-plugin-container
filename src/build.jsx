@@ -6,21 +6,20 @@ import {
 import {
   Operation,
   IO,
-  JSON as JUtils,
-  Config,
-  Repository,
   Watcher
 } from '@nebulario/core-plugin-request';
 import * as Dependencies from './dependencies'
 import _ from 'lodash'
 import fs from 'fs-extra'
 import path from 'path'
-import YAML from 'yamljs';
+import * as JsonUtils from '@nebulario/core-json';
 
 export const init = async (params, cxt) => {
 
   const {
+    performers,
     performer: {
+      dependents,
       type,
       code: {
         paths: {
@@ -34,6 +33,44 @@ export const init = async (params, cxt) => {
 
   if (type !== "instanced") {
     throw new Error("PERFORMER_NOT_INSTANCED");
+  }
+
+  IO.sendEvent("out", {
+    data: JSON.stringify(params, null, 2)
+  }, cxt);
+
+
+  for (const depSrv of dependents) {
+    const depSrvPerformer = _.find(performers, {
+      performerid: depSrv.moduleid
+    });
+
+    if (depSrvPerformer) {
+      IO.sendEvent("out", {
+        data: "Performing dependent found " + depSrv.moduleid
+      }, cxt);
+
+      if (depSrvPerformer.linked.includes("build")) {
+
+        IO.sendEvent("info", {
+          data: " - Linked " + depSrv.moduleid
+        }, cxt);
+
+        JsonUtils.sync(folder, {
+          filename: "package.json",
+          path: "dependencies." + depSrvPerformer.module.fullname,
+          version: "file:./../" + depSrv.moduleid
+        });
+
+      } else {
+        IO.sendEvent("warning", {
+          data: " - Not linked " + depSrv.moduleid
+        }, cxt);
+      }
+
+
+    }
+
   }
 
 
@@ -70,7 +107,9 @@ export const init = async (params, cxt) => {
 export const start = (params, cxt) => {
 
   const {
+    performers,
     performer: {
+      dependents,
       type,
       code
     }
@@ -88,17 +127,7 @@ export const start = (params, cxt) => {
     }
   } = code;
 
-  /*
-  KUBE env
 
-  {
-    DOCKER_TLS_VERIFY: "1",
-    DOCKER_HOST: "tcp://192.168.99.100:2376",
-    DOCKER_CERT_PATH: "/home/victor/.minikube/certs",
-    DOCKER_API_VERSION: "1.35"
-  }
-
-  */
 
   const dockerFile = path.join(folder, "Dockerfile");
 
@@ -170,7 +199,8 @@ const build = async (operation, params, cxt) => {
             folder
           }
         }
-      }
+      },
+      payload
     }
   } = params;
   const {
@@ -201,21 +231,34 @@ const build = async (operation, params, cxt) => {
 
     IO.sendEvent("out", {
       operationid,
-      data: "Start building container..."
+      data: "Start building container..." + payload
     }, cxt);
 
+    let ops = {};
     try {
+      ops = JSON.parse(payload);
+    } catch (e) {
+      IO.sendEvent("warning", {
+        data: e.toString()
+      }, cxt);
+    }
+
+
+    try {
+      const cmds = ['docker build  -t ' + dep.fullname + ":" + dep.version + ' -t ' + dep.fullname + ":linked --build-arg CACHEBUST=$(date +%s) ."];
+
+      if (ops.registry === "minikube") {
+        IO.sendEvent("info", {
+          data: "Building container to minikube..."
+        }, cxt);
+        cmds.unshift("eval $(minikube docker-env)")
+      }
 
       const {
         stdout,
         stderr /* --no-cache */
-      } = await exec(['docker build  -t ' + dep.fullname + ":" + dep.version + ' -t ' + dep.fullname + ":linked --build-arg CACHEBUST=$(date +%s) ."], {
-        cwd: folder,
-        env: {
-          DOCKER_TLS_VERIFY: "1",
-          DOCKER_HOST: "tcp://192.168.99.107:2376",
-          DOCKER_CERT_PATH: "/home/victor/.minikube/certs"
-        }
+      } = await exec(cmds, {
+        cwd: folder
       }, {}, cxt);
 
       stdout && IO.sendEvent("done", {
