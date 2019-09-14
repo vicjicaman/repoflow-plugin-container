@@ -59,7 +59,7 @@ export const init = async (params, cxt) => {
         JsonUtils.sync(folder, {
           filename: "package.json",
           path: "dependencies." + depSrvPerformer.module.fullname,
-          version: "file:./../" + depSrv.moduleid
+          version: "link:./../" + depSrv.moduleid
         });
 
       } else {
