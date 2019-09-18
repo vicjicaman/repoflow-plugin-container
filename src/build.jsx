@@ -50,7 +50,7 @@ export const init = async (params, cxt) => {
         data: "Performing dependent found " + depSrv.moduleid
       }, cxt);
 
-      if (depSrvPerformer.linked.includes("build")) {
+      if (depSrvPerformer.linked) {
 
         IO.sendEvent("info", {
           data: " - Linked " + depSrv.moduleid
@@ -235,13 +235,17 @@ const build = async (operation, params, cxt) => {
     }, cxt);
 
     let ops = {};
-    try {
-      ops = JSON.parse(payload);
-    } catch (e) {
-      IO.sendEvent("warning", {
-        data: e.toString()
-      }, cxt);
+
+    if(payload!==""){
+      try {
+        ops = JSON.parse(payload);
+      } catch (e) {
+        IO.sendEvent("warning", {
+          data: e.toString()
+        }, cxt);
+      }
     }
+
 
 
     try {
