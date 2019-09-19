@@ -1,223 +1,144 @@
-import {
-  wait,
-  spawn,
-  exec
-} from '@nebulario/core-process';
+import { wait, spawn, exec } from "@nebulario/core-process";
 import {
   Operation,
   IO,
-  Watcher
-} from '@nebulario/core-plugin-request';
-import * as Dependencies from './dependencies'
-import _ from 'lodash'
-import fs from 'fs-extra'
-import path from 'path'
-import * as JsonUtils from '@nebulario/core-json';
+  Watcher,
+  Performer
+} from "@nebulario/core-plugin-request";
+import * as Dependencies from "./dependencies";
+import _ from "lodash";
+import fs from "fs-extra";
+import path from "path";
+import * as JsonUtils from "@nebulario/core-json";
 
 export const init = async (params, cxt) => {
-
   const {
     performers,
+    performer,
     performer: {
       dependents,
       type,
       code: {
         paths: {
-          absolute: {
-            folder
+          absolute: { folder }
+        }
+      },
+      module: { dependencies }
+    }
+  } = params;
+
+  if (type === "instanced") {
+    Performer.link(performer, performers, {
+      onLinked: depPerformer => {
+        if (depPerformer.module.type === "npm") {
+          IO.sendEvent(
+            "info",
+            {
+              data: depPerformer.performerid + " npm linked!"
+            },
+            cxt
+          );
+
+          const dependentDependencies = _.filter(
+            dependencies,
+            dependency => dependency.moduleid === depPerformer.performerid
+          );
+
+          for (const depdep of dependentDependencies) {
+            const { filename, path } = depdep;
+
+            JsonUtils.sync(folder, {
+              filename,
+              path,
+              version: "link:./../" + depPerformer.performerid
+            });
           }
         }
       }
-    }
-  } = params;
-
-  if (type !== "instanced") {
-    throw new Error("PERFORMER_NOT_INSTANCED");
-  }
-
-  IO.sendEvent("out", {
-    data: JSON.stringify(params, null, 2)
-  }, cxt);
-
-
-  for (const depSrv of dependents) {
-    const depSrvPerformer = _.find(performers, {
-      performerid: depSrv.moduleid
     });
-
-    if (depSrvPerformer) {
-      IO.sendEvent("out", {
-        data: "Performing dependent found " + depSrv.moduleid
-      }, cxt);
-
-      if (depSrvPerformer.linked) {
-
-        IO.sendEvent("info", {
-          data: " - Linked " + depSrv.moduleid
-        }, cxt);
-
-        JsonUtils.sync(folder, {
-          filename: "package.json",
-          path: "dependencies." + depSrvPerformer.module.fullname,
-          version: "link:./../" + depSrv.moduleid
-        });
-
-      } else {
-        IO.sendEvent("warning", {
-          data: " - Not linked " + depSrv.moduleid
-        }, cxt);
-      }
-
-
-    }
-
   }
 
-
-  try {
-
-    const {
-      stdout,
-      stderr
-    } = await exec([
-      'yarn install --check-files'
-    ], {
+  const instout = await exec(
+    ["yarn install --check-files"],
+    {
       cwd: folder
-    }, {}, cxt);
+    },
+    {},
+    cxt
+  );
 
-    stdout && IO.sendEvent("out", {
-      data: stdout
-    }, cxt);
-
-    stderr && IO.sendEvent("warning", {
-      data: stderr
-    }, cxt);
-
-  } catch (e) {
-    IO.sendEvent("error", {
-      data: e.toString()
-    }, cxt);
-    throw e;
-  }
-
-  return "App package initialized";
-}
-
+  IO.sendOutput(instout, cxt);
+};
 
 export const start = (params, cxt) => {
-
   const {
     performers,
-    performer: {
-      dependents,
-      type,
-      code
-    }
+    performer: { dependents, type, code }
   } = params;
 
-  if (type !== "instanced") {
-    throw new Error("PERFORMER_NOT_INSTANCED");
-  }
-
-  const {
-    paths: {
-      absolute: {
-        folder
-      }
-    }
-  } = code;
-
-
-
-  const dockerFile = path.join(folder, "Dockerfile");
-
-  const watcher = async (operation, cxt) => {
-
+  if (type === "instanced") {
     const {
-      operationid
-    } = operation;
+      paths: {
+        absolute: { folder }
+      }
+    } = code;
 
-    await wait(100);
+    const dockerFile = path.join(folder, "Dockerfile");
 
-    /*IO.sendEvent("started", {
-      operationid,
-      data: ""
-    }, cxt);*/
+    const startOp = async (operation, cxt) => {
+      await build(operation, params, cxt);
+      const watcher = Watcher.watch(dockerFile, () => {
+        IO.sendEvent(
+          "warning",
+          {
+            data: "Dockerfile changed..."
+          },
+          cxt
+        );
 
+        build(operation, params, cxt);
+      });
 
-    IO.sendEvent("out", {
-      operationid,
-      data: "Watching changes for " + dockerFile
-    }, cxt);
+      while (operation.status !== "stopping") {
+        await wait(100); //wait(2500);
+      }
 
-    await build(operation, params, cxt);
-    const watcher = Watcher.watch(dockerFile, () => {
+      Watcher.stop(watcher);
+    };
 
-      IO.sendEvent("out", {
-        operationid,
-        data: "Dockerfile changed..."
-      }, cxt);
-
-      build(operation, params, cxt);
-
-    })
-
-    while (operation.status !== "stopping") {
-      /*IO.sendEvent("out", {
-        operationid,
-        data: "..."
-      }, cxt);*/
-      await wait(2500);
-    }
-
-    watcher.close();
-    await wait(100);
-
-    IO.sendEvent("stopped", {
-      operationid,
-      data: ""
-    }, cxt);
+    return {
+      promise: startOp,
+      process: null
+    };
   }
-
-
-  return {
-    promise: watcher,
-    process: null
-  };
-
-}
-
-
+};
 
 const build = async (operation, params, cxt) => {
-
   const {
     performer: {
       code: {
         paths: {
-          absolute: {
-            folder
-          }
+          absolute: { folder }
         }
       },
       payload
     }
   } = params;
-  const {
-    operationid
-  } = operation;
 
-  const deps = await Dependencies.list({
-    module: {
-      code: {
-        paths: {
-          absolute: {
-            folder
+  const deps = await Dependencies.list(
+    {
+      module: {
+        code: {
+          paths: {
+            absolute: {
+              folder
+            }
           }
         }
       }
-    }
-  }, cxt);
+    },
+    cxt
+  );
 
   const dep = _.find(deps, {
     kind: "inner"
@@ -227,66 +148,63 @@ const build = async (operation, params, cxt) => {
     return null;
   }
 
-  try {
+  let ops = {};
 
-    IO.sendEvent("out", {
-      operationid,
-      data: "Start building container..." + payload
-    }, cxt);
-
-    let ops = {};
-
-    if(payload!==""){
-      try {
-        ops = JSON.parse(payload);
-      } catch (e) {
-        IO.sendEvent("warning", {
-          data: e.toString()
-        }, cxt);
-      }
-    }
-
-
-
+  if (payload !== "") {
     try {
-      const cmds = ['docker build  -t ' + dep.fullname + ":" + dep.version + ' -t ' + dep.fullname + ":linked --build-arg CACHEBUST=$(date +%s) ."];
-
-      if (ops.registry === "minikube") {
-        IO.sendEvent("info", {
-          data: "Building container to minikube..."
-        }, cxt);
-        cmds.unshift("eval $(minikube docker-env)")
-      }
-
-      const {
-        stdout,
-        stderr /* --no-cache */
-      } = await exec(cmds, {
-        cwd: folder
-      }, {}, cxt);
-
-      stdout && IO.sendEvent("done", {
-        data: stdout
-      }, cxt);
-
-      stderr && IO.sendEvent("warning", {
-        data: stderr
-      }, cxt);
-
+      ops = JSON.parse(payload);
     } catch (e) {
-      IO.sendEvent("error", {
-        data: e.toString()
-      }, cxt);
-      throw e;
+      IO.sendEvent(
+        "warning",
+        {
+          data: "Invalid payload: " + e.toString()
+        },
+        cxt
+      );
     }
-
-  } catch (e) {
-    IO.sendEvent("error", {
-      operationid,
-      data: e.toString()
-    }, cxt);
   }
 
+  const cmds = [
+    "docker build  -t " +
+      dep.fullname +
+      ":" +
+      dep.version +
+      " -t " +
+      dep.fullname +
+      ":linked --build-arg CACHEBUST=$(date +%s) ."
+  ];
 
+  if (ops.registry === "minikube") {
+    IO.sendEvent(
+      "info",
+      {
+        data: "Building container to minikube..."
+      },
+      cxt
+    );
+    cmds.unshift("eval $(minikube docker-env)");
+  }
 
-}
+  try {
+    const buildout = await exec(
+      cmds,
+      {
+        cwd: folder
+      },
+      {},
+      cxt
+    );
+
+    IO.sendOutput(buildout, cxt);
+  } catch (e) {
+    IO.sendEvent(
+      "warning",
+      {
+        data: e.toString()
+      },
+      cxt
+    );
+  }
+
+  IO.sendEvent("done", {}, cxt);
+};
