@@ -9,9 +9,18 @@
   dependencies:
     yamljs "^0.3.0"
 
-"@nebulario/core-plugin-request@link:../core-plugin-request":
-  version "0.0.0"
-  uid ""
+"@nebulario/core-plugin-request@1.70.0-runtime-reference-prod":
+  version "1.70.0-runtime-reference-prod"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-plugin-request/-/core-plugin-request-1.70.0-runtime-reference-prod.tgz#6f6b7de8cc21a414b08cfbdb81fcc77f8a5ee508"
+  integrity sha512-pt11cvpoc48lB4F4o0TFVvM8T6HpyY2bocREh4D8OsyiXU8J53XYlMc9isJFD7Jm3jXcUYbHA1WI2ChjUk+G1w==
+  dependencies:
+    "@nebulario/core-process" "1.70.1-master"
+    axios "^0.19.0"
+    babel-runtime "^6.26.0"
+    bluebird "^3.5.1"
+    md5 "^2.2.1"
+    tree-kill "^1.2.0"
+    yamljs "^0.3.0"
 
 "@nebulario/core-process@1.70.1-master":
   version "1.70.1-master"
