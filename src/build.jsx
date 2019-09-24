@@ -11,6 +11,8 @@ import fs from "fs-extra";
 import path from "path";
 import * as JsonUtils from "@nebulario/core-json";
 
+import * as Cluster from "@nebulario/core-cluster";
+
 export const init = async (params, cxt) => {
   const {
     performers,
@@ -122,7 +124,8 @@ const build = async (operation, params, cxt) => {
         }
       },
       payload
-    }
+    },
+    config: { remote }
   } = params;
 
   const deps = await Dependencies.list(
@@ -148,48 +151,37 @@ const build = async (operation, params, cxt) => {
     return null;
   }
 
-  let ops = {};
+  try {
 
-  if (payload !== "") {
-    try {
-      ops = JSON.parse(payload);
-    } catch (e) {
+    if (remote && remote.registry === "minikube") {
       IO.sendEvent(
-        "warning",
+        "info",
         {
-          data: "Invalid payload: " + e.toString()
+          data: "Building container to minikube..."
         },
         cxt
       );
     }
-  }
 
-  const cmds = [
-    "docker build  -t " +
-      dep.fullname +
-      ":" +
-      dep.version +
-      " -t " +
-      dep.fullname +
-      ":linked --build-arg CACHEBUST=$(date +%s) ."
-  ];
+    const buildout = await Cluster.Control.exec(
+      [{ path: folder, type: "folder" }],
+      async ([folder], innerClusterContext, cxt) => {
+        const cmds = [
+          "docker build  -t " +
+            dep.fullname +
+            ":" +
+            dep.version +
+            " -t " +
+            dep.fullname +
+            ":linked --build-arg CACHEBUST=$(date +%s) " +
+            folder
+        ];
 
-  if (ops.registry === "minikube") {
-    IO.sendEvent(
-      "info",
-      {
-        data: "Building container to minikube..."
-      },
-      cxt
-    );
-    cmds.unshift("eval $(minikube docker-env)");
-  }
+        if (remote && remote.registry === "minikube") {
+          cmds.unshift("eval $(minikube docker-env)");
+        }
 
-  try {
-    const buildout = await exec(
-      cmds,
-      {
-        cwd: folder
+        return await innerClusterContext(cmds.join(";"), {}, cxt);
       },
       {},
       cxt
