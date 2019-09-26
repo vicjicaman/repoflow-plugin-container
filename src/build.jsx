@@ -1,193 +1,147 @@
-import {
-  wait,
-  spawn,
-  exec
-} from '@nebulario/core-process';
+import { wait, spawn, exec } from "@nebulario/core-process";
 import {
   Operation,
   IO,
-  JSON as JUtils,
-  Config,
-  Repository,
-  Watcher
-} from '@nebulario/core-plugin-request';
-import * as Dependencies from './dependencies'
-import _ from 'lodash'
-import fs from 'fs-extra'
-import path from 'path'
-import YAML from 'yamljs';
+  Watcher,
+  Performer
+} from "@nebulario/core-plugin-request";
+import * as Dependencies from "./dependencies";
+import _ from "lodash";
+import fs from "fs-extra";
+import path from "path";
+import * as JsonUtils from "@nebulario/core-json";
+
+import * as Cluster from "@nebulario/core-cluster";
 
 export const init = async (params, cxt) => {
-
   const {
+    performers,
+    performer,
     performer: {
+      dependents,
       type,
       code: {
         paths: {
-          absolute: {
-            folder
-          }
+          absolute: { folder }
         }
-      }
+      },
+      module: { dependencies }
     }
   } = params;
 
-  if (type !== "instanced") {
-    throw new Error("PERFORMER_NOT_INSTANCED");
+  if (type === "instanced") {
+    Performer.link(performer, performers, {
+      onLinked: depPerformer => {
+        if (depPerformer.module.type === "npm") {
+          IO.sendEvent(
+            "info",
+            {
+              data: depPerformer.performerid + " npm linked!"
+            },
+            cxt
+          );
+
+          const dependentDependencies = _.filter(
+            dependencies,
+            dependency => dependency.moduleid === depPerformer.performerid
+          );
+
+          for (const depdep of dependentDependencies) {
+            const { filename, path } = depdep;
+
+            JsonUtils.sync(folder, {
+              filename,
+              path,
+              version: "link:./../" + depPerformer.performerid
+            });
+          }
+        }
+      }
+    });
   }
 
-
-  try {
-
-    const {
-      stdout,
-      stderr
-    } = await exec([
-      'yarn install --check-files'
-    ], {
+  const instout = await exec(
+    ["yarn install --check-files"],
+    {
       cwd: folder
-    }, {}, cxt);
+    },
+    {},
+    cxt
+  );
 
-    stdout && IO.sendEvent("out", {
-      data: stdout
-    }, cxt);
-
-    stderr && IO.sendEvent("warning", {
-      data: stderr
-    }, cxt);
-
-  } catch (e) {
-    IO.sendEvent("error", {
-      data: e.toString()
-    }, cxt);
-    throw e;
-  }
-
-  return "App package initialized";
-}
-
+  IO.sendOutput(instout, cxt);
+};
 
 export const start = (params, cxt) => {
-
   const {
-    performer: {
-      type,
-      code
-    }
+    performers,
+    performer: { dependents, type, code }
   } = params;
 
-  if (type !== "instanced") {
-    throw new Error("PERFORMER_NOT_INSTANCED");
-  }
-
-  const {
-    paths: {
-      absolute: {
-        folder
-      }
-    }
-  } = code;
-
-  /*
-  KUBE env
-
-  {
-    DOCKER_TLS_VERIFY: "1",
-    DOCKER_HOST: "tcp://192.168.99.100:2376",
-    DOCKER_CERT_PATH: "/home/victor/.minikube/certs",
-    DOCKER_API_VERSION: "1.35"
-  }
-
-  */
-
-  const dockerFile = path.join(folder, "Dockerfile");
-
-  const watcher = async (operation, cxt) => {
-
+  if (type === "instanced") {
     const {
-      operationid
-    } = operation;
+      paths: {
+        absolute: { folder }
+      }
+    } = code;
 
-    await wait(100);
+    const dockerFile = path.join(folder, "Dockerfile");
 
-    /*IO.sendEvent("started", {
-      operationid,
-      data: ""
-    }, cxt);*/
+    const startOp = async (operation, cxt) => {
+      await build(operation, params, cxt);
+      const watcher = Watcher.watch(dockerFile, () => {
+        IO.sendEvent(
+          "warning",
+          {
+            data: "Dockerfile changed..."
+          },
+          cxt
+        );
 
+        build(operation, params, cxt);
+      });
 
-    IO.sendEvent("out", {
-      operationid,
-      data: "Watching changes for " + dockerFile
-    }, cxt);
+      while (operation.status !== "stopping") {
+        await wait(100); //wait(2500);
+      }
 
-    await build(operation, params, cxt);
-    const watcher = Watcher.watch(dockerFile, () => {
+      Watcher.stop(watcher);
+    };
 
-      IO.sendEvent("out", {
-        operationid,
-        data: "Dockerfile changed..."
-      }, cxt);
-
-      build(operation, params, cxt);
-
-    })
-
-    while (operation.status !== "stopping") {
-      /*IO.sendEvent("out", {
-        operationid,
-        data: "..."
-      }, cxt);*/
-      await wait(2500);
-    }
-
-    watcher.close();
-    await wait(100);
-
-    IO.sendEvent("stopped", {
-      operationid,
-      data: ""
-    }, cxt);
+    return {
+      promise: startOp,
+      process: null
+    };
   }
-
-
-  return {
-    promise: watcher,
-    process: null
-  };
-
-}
-
-
+};
 
 const build = async (operation, params, cxt) => {
-
   const {
     performer: {
       code: {
         paths: {
-          absolute: {
-            folder
-          }
+          absolute: { folder }
         }
-      }
-    }
+      },
+      payload
+    },
+    config: { remote }
   } = params;
-  const {
-    operationid
-  } = operation;
 
-  const deps = await Dependencies.list({
-    module: {
-      code: {
-        paths: {
-          absolute: {
-            folder
+  const deps = await Dependencies.list(
+    {
+      module: {
+        code: {
+          paths: {
+            absolute: {
+              folder
+            }
           }
         }
       }
-    }
-  }, cxt);
+    },
+    cxt
+  );
 
   const dep = _.find(deps, {
     kind: "inner"
@@ -199,47 +153,50 @@ const build = async (operation, params, cxt) => {
 
   try {
 
-    IO.sendEvent("out", {
-      operationid,
-      data: "Start building container..."
-    }, cxt);
-
-    try {
-
-      const {
-        stdout,
-        stderr /* --no-cache */
-      } = await exec(['docker build  -t ' + dep.fullname + ":" + dep.version + ' -t ' + dep.fullname + ":linked --build-arg CACHEBUST=$(date +%s) ."], {
-        cwd: folder,
-        env: {
-          DOCKER_TLS_VERIFY: "1",
-          DOCKER_HOST: "tcp://192.168.99.107:2376",
-          DOCKER_CERT_PATH: "/home/victor/.minikube/certs"
-        }
-      }, {}, cxt);
-
-      stdout && IO.sendEvent("done", {
-        data: stdout
-      }, cxt);
-
-      stderr && IO.sendEvent("warning", {
-        data: stderr
-      }, cxt);
-
-    } catch (e) {
-      IO.sendEvent("error", {
-        data: e.toString()
-      }, cxt);
-      throw e;
+    if (remote && remote.registry === "minikube") {
+      IO.sendEvent(
+        "info",
+        {
+          data: "Building container to minikube..."
+        },
+        cxt
+      );
     }
 
+    const buildout = await Cluster.Control.exec(
+      [{ path: folder, type: "folder" }],
+      async ([folder], innerClusterContext, cxt) => {
+        const cmds = [
+          "docker build  -t " +
+            dep.fullname +
+            ":" +
+            dep.version +
+            " -t " +
+            dep.fullname +
+            ":linked --build-arg CACHEBUST=$(date +%s) " +
+            folder
+        ];
+
+        if (remote && remote.registry === "minikube") {
+          cmds.unshift("eval $(minikube docker-env)");
+        }
+
+        return await innerClusterContext(cmds.join(";"), {}, cxt);
+      },
+      {},
+      cxt
+    );
+
+    IO.sendOutput(buildout, cxt);
   } catch (e) {
-    IO.sendEvent("error", {
-      operationid,
-      data: e.toString()
-    }, cxt);
+    IO.sendEvent(
+      "warning",
+      {
+        data: e.toString()
+      },
+      cxt
+    );
   }
 
-
-
-}
+  IO.sendEvent("done", {}, cxt);
+};
