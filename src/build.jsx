@@ -10,7 +10,6 @@ import _ from "lodash";
 import fs from "fs-extra";
 import path from "path";
 import * as JsonUtils from "@nebulario/core-json";
-
 import * as Cluster from "@nebulario/core-cluster";
 
 export const init = async (params, cxt) => {
@@ -125,7 +124,7 @@ const build = async (operation, params, cxt) => {
       },
       payload
     },
-    config: { remote }
+    config: { cluster }
   } = params;
 
   const deps = await Dependencies.list(
@@ -152,8 +151,7 @@ const build = async (operation, params, cxt) => {
   }
 
   try {
-
-    if (remote && remote.registry === "minikube") {
+    if (cluster && cluster.target === "minikube") {
       IO.sendEvent(
         "info",
         {
@@ -177,7 +175,7 @@ const build = async (operation, params, cxt) => {
             folder
         ];
 
-        if (remote && remote.registry === "minikube") {
+        if (cluster && cluster.target === "minikube") {
           cmds.unshift("eval $(minikube docker-env)");
         }
 
