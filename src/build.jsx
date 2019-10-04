@@ -1,16 +1,12 @@
 import { wait, spawn, exec } from "@nebulario/core-process";
-import {
-  Operation,
-  IO,
-  Watcher,
-  Performer
-} from "@nebulario/core-plugin-request";
+import { Operation, IO, Watcher } from "@nebulario/core-plugin-request";
 import * as Dependencies from "./dependencies";
 import _ from "lodash";
 import fs from "fs-extra";
 import path from "path";
 import * as JsonUtils from "@nebulario/core-json";
 import * as Cluster from "@nebulario/core-cluster";
+import * as Performer from "@nebulario/core-performer";
 
 export const init = async (params, cxt) => {
   const {
@@ -32,13 +28,7 @@ export const init = async (params, cxt) => {
     Performer.link(performer, performers, {
       onLinked: depPerformer => {
         if (depPerformer.module.type === "npm") {
-          IO.sendEvent(
-            "info",
-            {
-              data: depPerformer.performerid + " npm linked!"
-            },
-            cxt
-          );
+          IO.print("info", depPerformer.performerid + " npm linked!", cxt);
 
           const dependentDependencies = _.filter(
             dependencies,
@@ -89,13 +79,7 @@ export const start = (params, cxt) => {
     const startOp = async (operation, cxt) => {
       await build(operation, params, cxt);
       const watcher = Watcher.watch(dockerFile, () => {
-        IO.sendEvent(
-          "warning",
-          {
-            data: "Dockerfile changed..."
-          },
-          cxt
-        );
+        IO.print("warning", "Dockerfile changed...", cxt);
 
         build(operation, params, cxt);
       });
@@ -152,13 +136,7 @@ const build = async (operation, params, cxt) => {
 
   try {
     if (cluster && cluster.target === "minikube") {
-      IO.sendEvent(
-        "info",
-        {
-          data: "Building container to minikube..."
-        },
-        cxt
-      );
+      IO.print("info", "Building container to minikube...", cxt);
     }
 
     const buildout = await Cluster.Control.exec(
@@ -187,14 +165,8 @@ const build = async (operation, params, cxt) => {
 
     IO.sendOutput(buildout, cxt);
   } catch (e) {
-    IO.sendEvent(
-      "warning",
-      {
-        data: e.toString()
-      },
-      cxt
-    );
+    IO.print("warning", e.toString(), cxt);
   }
 
-  IO.sendEvent("done", {}, cxt);
+  IO.print("done", "", cxt);
 };
