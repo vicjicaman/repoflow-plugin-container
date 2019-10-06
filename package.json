@@ -1,6 +1,6 @@
 {
   "name": "@nebulario/repoflow-plugin-container",
-  "version": "1.70.0-container-runtime-prod",
+  "version": "1.70.1-container-runtime-prod",
   "description": "Base for nodes",
   "main": "./dist/index.js",
   "repository": "github.com:vicjicaman/core-render-stateful-server.git",
@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@nebulario/core-performer": "link:./../core-performer",
-    "@nebulario/core-cluster": "link:./../core-cluster",
+    "@nebulario/core-cluster": "1.70.1-container-runtime-prod",
     "@nebulario/core-json": "1.70.1-master",
     "@nebulario/core-plugin-request": "link:./../core-plugin-request",
     "@nebulario/core-process": "1.70.1-master",
