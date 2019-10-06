@@ -9,12 +9,12 @@
   dependencies:
     regenerator-runtime "^0.13.2"
 
-"@nebulario/core-cluster@1.70.1-container-runtime-prod":
-  version "1.70.1-container-runtime-prod"
-  resolved "https://registry.yarnpkg.com/@nebulario/core-cluster/-/core-cluster-1.70.1-container-runtime-prod.tgz#fbbf3425011c8c6d9bc577aac96ad2b50e435762"
-  integrity sha512-9T4YRzvX9V+rsKkU85vWY/siKFNlGWHN9QLJsjuKE/wctcC7hGSepka7qAQ759PUeeKzJp7x0ALWfd5OEDNkeg==
+"@nebulario/core-cluster@1.70.1-master":
+  version "1.70.1-master"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-cluster/-/core-cluster-1.70.1-master.tgz#45832a12bc8bbe09818db99e7c46f0b67f4ab1ac"
+  integrity sha512-CRUQhKrjrATOEnebCdLwuyp5YPFfIzeHvyY5AdLBlLYVTEUY/33VokhYoAWIpgBnvF+UtZHhvmMqm3F+H6WNyA==
   dependencies:
-    "@nebulario/core-config" "link:../../../../../../../../../../../../.cache/yarn/v4/npm-@nebulario-core-cluster-1.70.1-container-runtime-prod-fbbf3425011c8c6d9bc577aac96ad2b50e435762/node_modules/@nebulario/core-config"
+    "@nebulario/core-config" "1.70.4-master"
     "@nebulario/core-json" "1.70.1-master"
     "@nebulario/core-process" "1.70.1-master"
     "@nebulario/core-repository" "1.70.1-master"
@@ -25,9 +25,18 @@
     lodash "^4.17.4"
     uuid "^3.3.3"
 
-"@nebulario/core-config@link:../core-config":
-  version "0.0.0"
-  uid ""
+"@nebulario/core-config@1.70.4-master":
+  version "1.70.4-master"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-config/-/core-config-1.70.4-master.tgz#16aa08f683cb1171846df89385a922f18c5988aa"
+  integrity sha512-107asi0GVLEG+m64h6zuZS0F7D5tbTOLwCm3/OT5VgpcaRJVgYTwE7gKIw6qTwQPgQhyW7b7SfNrSLDdTJMokA==
+  dependencies:
+    "@nebulario/core-json" "1.70.1-master"
+    "@nebulario/core-repository" "1.70.1-master"
+    babel-runtime "^6.26.0"
+    bluebird "^3.5.1"
+    child-process-promise "^2.2.1"
+    lodash "^4.17.4"
+    uuid "^3.3.2"
 
 "@nebulario/core-json@1.70.1-master":
   version "1.70.1-master"
@@ -36,13 +45,31 @@
   dependencies:
     yamljs "^0.3.0"
 
-"@nebulario/core-performer@link:../core-performer":
-  version "0.0.0"
-  uid ""
+"@nebulario/core-performer@1.70.0-master":
+  version "1.70.0-master"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-performer/-/core-performer-1.70.0-master.tgz#cabe71d0625ce808bb8c7d0e199fe00274a40319"
+  integrity sha512-ykGaw19T8bC6Bro5TjIw5AnqNsHlZwtkRsV9l0hzBVxnbrYm6PfHQn8oZUarcTCv/Y5Dq7V9+pbSlbZBE97OHA==
+  dependencies:
+    "@nebulario/core-process" "1.70.1-master"
+    axios "^0.19.0"
+    babel-runtime "^6.26.0"
+    bluebird "^3.5.1"
+    md5 "^2.2.1"
+    tree-kill "^1.2.0"
+    yamljs "^0.3.0"
 
-"@nebulario/core-plugin-request@link:../core-plugin-request":
-  version "0.0.0"
-  uid ""
+"@nebulario/core-plugin-request@1.70.10-master":
+  version "1.70.10-master"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-plugin-request/-/core-plugin-request-1.70.10-master.tgz#c7c3176b5353adb6723eb35eeb684fe6288e08bd"
+  integrity sha512-5+huEbV2cxBY/LIjiJg6kqlSH07x2THpGcRlxEkShD2uw7CsW4ag5kuTkncDduDkDYZynI/RclTlJNOLLllkWA==
+  dependencies:
+    "@nebulario/core-process" "1.70.1-master"
+    axios "^0.19.0"
+    babel-runtime "^6.26.0"
+    bluebird "^3.5.1"
+    md5 "^2.2.1"
+    tree-kill "^1.2.0"
+    yamljs "^0.3.0"
 
 "@nebulario/core-process@1.70.1-master":
   version "1.70.1-master"
@@ -259,6 +286,14 @@ axios@^0.18.0:
   version "0.18.1"
   resolved "https://registry.yarnpkg.com/axios/-/axios-0.18.1.tgz#ff3f0de2e7b5d180e757ad98000f1081b87bcea3"
   integrity sha512-0BfJq4NSfQXd+SkFdrvFbG7addhYSBA2mQwISr46pD6E5iqkWg02RAs8vyTT/j0RTnoYmeXauBuSv1qKwR179g==
+  dependencies:
+    follow-redirects "1.5.10"
+    is-buffer "^2.0.2"
+
+axios@^0.19.0:
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.19.0.tgz#8e09bff3d9122e133f7b8101c8fbdd00ed3d2ab8"
+  integrity sha512-1uvKqKQta3KBxIz14F2v06AEHZ/dIoeKfbTRkK1E5oqjDnuEerLmYTgJB5AiQZHJcljpg1TuRzdjDR06qNk0DQ==
   dependencies:
     follow-redirects "1.5.10"
     is-buffer "^2.0.2"
@@ -1357,6 +1392,11 @@ chalk@^2.3.0, chalk@^2.4.1:
     escape-string-regexp "^1.0.5"
     supports-color "^5.3.0"
 
+charenc@~0.0.1:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/charenc/-/charenc-0.0.2.tgz#c0a1d2f3a7092e03774bfa83f14c0fc5790a8667"
+  integrity sha1-wKHS86cJLgN3S/qD8UwPxXkKhmc=
+
 check-types@^7.3.0:
   version "7.4.0"
   resolved "https://registry.yarnpkg.com/check-types/-/check-types-7.4.0.tgz#0378ec1b9616ec71f774931a3c6516fad8c152f4"
@@ -1646,6 +1686,11 @@ cross-spawn@^6.0.5:
     semver "^5.5.0"
     shebang-command "^1.2.0"
     which "^1.2.9"
+
+crypt@~0.0.1:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/crypt/-/crypt-0.0.2.tgz#88d7ff7ec0dfb86f713dc87bbb42d044d3e6c41b"
+  integrity sha1-iNf/fsDfuG9xPch7u0LQRNPmxBs=
 
 crypto-browserify@^3.11.0:
   version "3.12.0"
@@ -2663,7 +2708,7 @@ is-binary-path@^1.0.0:
   dependencies:
     binary-extensions "^1.0.0"
 
-is-buffer@^1.1.5:
+is-buffer@^1.1.5, is-buffer@~1.1.1:
   version "1.1.6"
   resolved "https://registry.yarnpkg.com/is-buffer/-/is-buffer-1.1.6.tgz#efaa2ea9daa0d7ab2ea13a97b2b8ad51fefbe8be"
   integrity sha512-NcdALwpXkTm5Zvvbk7owOUSvVvBKDgKP5/ewfXEznmQFfs4ZRmanOeKBTjRVjka3QFoN6XJ+9F3USqfHqTaU5w==
@@ -3060,6 +3105,15 @@ md5.js@^1.3.4:
     hash-base "^3.0.0"
     inherits "^2.0.1"
     safe-buffer "^5.1.2"
+
+md5@^2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/md5/-/md5-2.2.1.tgz#53ab38d5fe3c8891ba465329ea23fac0540126f9"
+  integrity sha1-U6s41f48iJG6RlMp6iP6wFQBJvk=
+  dependencies:
+    charenc "~0.0.1"
+    crypt "~0.0.1"
+    is-buffer "~1.1.1"
 
 media-typer@0.3.0:
   version "0.3.0"
