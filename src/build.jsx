@@ -85,7 +85,7 @@ export const start = (params, cxt) => {
       });
 
       while (operation.status !== "stopping") {
-        await wait(100); //wait(2500);
+        await wait(10);
       }
 
       Watcher.stop(watcher);
