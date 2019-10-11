@@ -1,7 +1,7 @@
 import { wait, spawn, exec } from "@nebulario/core-process";
 import { Operation, IO } from "@nebulario/core-plugin-request";
 import _ from "lodash";
-import fs from "fs-extra";
+import fs from "fs";
 import path from "path";
 import * as JsonUtils from "@nebulario/core-json";
 import * as Cluster from "@nebulario/core-cluster";
@@ -87,17 +87,28 @@ export const init = async (params, cxt) => {
     }
 
     const prodFolder = outputFolder;
-    const instout = await exec(
+    const copts = {
+      cwd: folder
+    };
+
+    await exec(["mkdir -p " + prodFolder], copts, {}, cxt);
+
+    if (fs.existsSync(path.join(folder, "yarn.lock"))) {
+      await exec(
+        ["cp -u yarn.lock " + path.join(prodFolder, "yarn.lock ")],
+        copts,
+        {},
+        cxt
+      );
+    }
+
+    await exec(
       [
-        "mkdir -p " + prodFolder,
         "cp -u package.json " + path.join(prodFolder, "package.json"),
-        "cp -u yarn.lock " + path.join(prodFolder, "yarn.lock "),
         "cd " + prodFolder,
         "yarn install --check-files --production=true"
       ],
-      {
-        cwd: folder
-      },
+      copts,
       {},
       cxt
     );
