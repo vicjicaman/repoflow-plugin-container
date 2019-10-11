@@ -9,21 +9,9 @@
   dependencies:
     regenerator-runtime "^0.13.2"
 
-"@nebulario/core-cluster@1.70.1-master":
-  version "1.70.1-master"
-  resolved "https://registry.yarnpkg.com/@nebulario/core-cluster/-/core-cluster-1.70.1-master.tgz#45832a12bc8bbe09818db99e7c46f0b67f4ab1ac"
-  integrity sha512-CRUQhKrjrATOEnebCdLwuyp5YPFfIzeHvyY5AdLBlLYVTEUY/33VokhYoAWIpgBnvF+UtZHhvmMqm3F+H6WNyA==
-  dependencies:
-    "@nebulario/core-config" "1.70.4-master"
-    "@nebulario/core-json" "1.70.1-master"
-    "@nebulario/core-process" "1.70.1-master"
-    "@nebulario/core-repository" "1.70.1-master"
-    babel-runtime "^6.26.0"
-    bluebird "^3.5.1"
-    child-process-promise "^2.2.1"
-    fs-extra "^8.1.0"
-    lodash "^4.17.4"
-    uuid "^3.3.3"
+"@nebulario/core-cluster@link:../core-cluster":
+  version "0.0.0"
+  uid ""
 
 "@nebulario/core-config@1.70.4-master":
   version "1.70.4-master"
@@ -58,18 +46,9 @@
     tree-kill "^1.2.0"
     yamljs "^0.3.0"
 
-"@nebulario/core-plugin-request@1.70.10-master":
-  version "1.70.10-master"
-  resolved "https://registry.yarnpkg.com/@nebulario/core-plugin-request/-/core-plugin-request-1.70.10-master.tgz#c7c3176b5353adb6723eb35eeb684fe6288e08bd"
-  integrity sha512-5+huEbV2cxBY/LIjiJg6kqlSH07x2THpGcRlxEkShD2uw7CsW4ag5kuTkncDduDkDYZynI/RclTlJNOLLllkWA==
-  dependencies:
-    "@nebulario/core-process" "1.70.1-master"
-    axios "^0.19.0"
-    babel-runtime "^6.26.0"
-    bluebird "^3.5.1"
-    md5 "^2.2.1"
-    tree-kill "^1.2.0"
-    yamljs "^0.3.0"
+"@nebulario/core-plugin-request@link:../core-plugin-request":
+  version "0.0.0"
+  uid ""
 
 "@nebulario/core-process@1.70.1-master":
   version "1.70.1-master"
