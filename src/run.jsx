@@ -131,7 +131,7 @@ export const start = (params, cxt) => {
     await restart(params, cxt);
 
     while (operation.status !== "stopping") {
-      await wait(100); //wait(2500);
+      await wait(10);
     }
 
   };
@@ -169,7 +169,7 @@ const restart = async (params, cxt) => {
   if (currentComposeProcess) {
     //process.kill(currentComposeProcess.process.pid);
     kill(currentComposeProcess.process.pid);
-    await wait(1000);
+    await wait(100);
   }
 
   const tmpPath = path.join(sourceFolder, "tmp");
