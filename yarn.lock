@@ -9,14 +9,26 @@
   dependencies:
     regenerator-runtime "^0.13.2"
 
-"@nebulario/core-cluster@link:../core-cluster":
-  version "0.0.0"
-  uid ""
+"@nebulario/core-cluster@1.70.0-bundle-cluster-prod":
+  version "1.70.0-bundle-cluster-prod"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-cluster/-/core-cluster-1.70.0-bundle-cluster-prod.tgz#09d80f79c89684cdeaae3171ef54e5939ef99b07"
+  integrity sha512-wDPXXVx0gMYyhEVXhEiK7bvknkJdAVGdKNsKtlHzVZganQACa89cQZl7hbiSddxRSeqQbhiMHInehBV/va8UGg==
+  dependencies:
+    "@nebulario/core-config" "1.70.0-bundle-cluster-prod"
+    "@nebulario/core-json" "1.70.1-master"
+    "@nebulario/core-process" "1.70.1-master"
+    "@nebulario/core-repository" "1.70.1-master"
+    babel-runtime "^6.26.0"
+    bluebird "^3.5.1"
+    child-process-promise "^2.2.1"
+    fs-extra "^8.1.0"
+    lodash "^4.17.4"
+    uuid "^3.3.3"
 
-"@nebulario/core-config@1.70.4-master":
-  version "1.70.4-master"
-  resolved "https://registry.yarnpkg.com/@nebulario/core-config/-/core-config-1.70.4-master.tgz#16aa08f683cb1171846df89385a922f18c5988aa"
-  integrity sha512-107asi0GVLEG+m64h6zuZS0F7D5tbTOLwCm3/OT5VgpcaRJVgYTwE7gKIw6qTwQPgQhyW7b7SfNrSLDdTJMokA==
+"@nebulario/core-config@1.70.0-bundle-cluster-prod":
+  version "1.70.0-bundle-cluster-prod"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-config/-/core-config-1.70.0-bundle-cluster-prod.tgz#ffa2ecc3c66c8ff1fc96ef284bfb19c840703519"
+  integrity sha512-1bjq0LVl+cnU9a81WylaFAjRqJY0XSZ+AGM0ydGB3AWzmBQ4E67Wl3pnChQaChYz0ZKZTEktXqG0qTrH3B+ndA==
   dependencies:
     "@nebulario/core-json" "1.70.1-master"
     "@nebulario/core-repository" "1.70.1-master"
@@ -46,9 +58,18 @@
     tree-kill "^1.2.0"
     yamljs "^0.3.0"
 
-"@nebulario/core-plugin-request@link:../core-plugin-request":
-  version "0.0.0"
-  uid ""
+"@nebulario/core-plugin-request@1.70.0-bundle-cluster-prod":
+  version "1.70.0-bundle-cluster-prod"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-plugin-request/-/core-plugin-request-1.70.0-bundle-cluster-prod.tgz#90c255809530420cf7942bed95b291bcd89f1a06"
+  integrity sha512-qXq/arIOF5u+udO6fmlpRwOaEVnu+GggeWF7EBfl65iCLrP28ShUOpjssp+//N+T5Cktz6gcO5lF0ikGhZjFdA==
+  dependencies:
+    "@nebulario/core-process" "1.70.1-master"
+    axios "^0.19.0"
+    babel-runtime "^6.26.0"
+    bluebird "^3.5.1"
+    md5 "^2.2.1"
+    tree-kill "^1.2.0"
+    yamljs "^0.3.0"
 
 "@nebulario/core-process@1.70.1-master":
   version "1.70.1-master"
