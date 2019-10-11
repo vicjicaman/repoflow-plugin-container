@@ -1,12 +1,43 @@
 import { wait, spawn, exec } from "@nebulario/core-process";
-import { Operation, IO, Watcher } from "@nebulario/core-plugin-request";
-import * as Dependencies from "./dependencies";
+import { Operation, IO } from "@nebulario/core-plugin-request";
 import _ from "lodash";
 import fs from "fs-extra";
 import path from "path";
 import * as JsonUtils from "@nebulario/core-json";
 import * as Cluster from "@nebulario/core-cluster";
 import * as Performer from "@nebulario/core-performer";
+import chokidar from "chokidar";
+
+const getLinkedApp = (contPerf, performers) => {
+  const {
+    dependents,
+    module: { dependencies }
+  } = contPerf;
+
+  const appdep = _.find(dependencies, ({ kind }) => kind === "app");
+
+  if (appdep) {
+    const { moduleid } = appdep;
+
+    const depSrvPerformer = _.find(performers, {
+      performerid: moduleid
+    });
+
+    if (depSrvPerformer && depSrvPerformer.linked) {
+      return depSrvPerformer;
+    }
+  }
+
+  return null;
+};
+
+const containerBuildPath = ({ performer, instance: { instanceid } }) =>
+  path.join(
+    "${HOME}/repoflow/instances",
+    instanceid,
+    "containers",
+    performer.performerid
+  );
 
 export const init = async (params, cxt) => {
   const {
@@ -20,37 +51,63 @@ export const init = async (params, cxt) => {
           absolute: { folder }
         }
       },
-      module: { dependencies }
-    }
+      module: { dependencies },
+      output: {
+        paths: {
+          absolute: { folder: outputFolder }
+        }
+      }
+    },
+    config: { cluster },
+    instance: { instanceid }
   } = params;
 
   if (type === "instanced") {
-    Performer.link(performer, performers, {
-      onLinked: depPerformer => {
-        if (depPerformer.module.type === "npm") {
-          IO.print("info", depPerformer.performerid + " npm linked!", cxt);
+    const linkedPerformers = Performer.linked(performer, performers);
 
-          const dependentDependencies = _.filter(
-            dependencies,
-            dependency => dependency.moduleid === depPerformer.performerid
-          );
+    for (const depPerformer of linkedPerformers) {
+      if (depPerformer.module.type === "npm") {
+        IO.print("info", depPerformer.performerid + " npm linked!", cxt);
 
-          for (const depdep of dependentDependencies) {
-            const { filename, path } = depdep;
+        const dependentDependencies = _.filter(
+          dependencies,
+          dependency => dependency.moduleid === depPerformer.performerid
+        );
 
-            JsonUtils.sync(folder, {
-              filename,
-              path,
-              version: "link:./../" + depPerformer.performerid
-            });
-          }
+        for (const depdep of dependentDependencies) {
+          const { filename, path } = depdep;
+
+          JsonUtils.sync(folder, {
+            filename,
+            path,
+            version: "link:./../" + depPerformer.performerid
+          });
         }
       }
-    });
+    }
+
+    const prodFolder = outputFolder;
+    const instout = await exec(
+      [
+        "mkdir -p " + prodFolder,
+        "cp -u package.json " + path.join(prodFolder, "package.json"),
+        "cp -u yarn.lock " + path.join(prodFolder, "yarn.lock "),
+        "cd " + prodFolder,
+        "yarn install --check-files --production=true"
+      ],
+      {
+        cwd: folder
+      },
+      {},
+      cxt
+    );
+
+    IO.print("info", "Linked production package ready!", cxt);
   }
 
+  IO.print("out", "Install App packages...", cxt);
   const instout = await exec(
-    ["yarn install --check-files"],
+    ["yarn install --check-files --production=true"],
     {
       cwd: folder
     },
@@ -59,6 +116,24 @@ export const init = async (params, cxt) => {
   );
 
   IO.sendOutput(instout, cxt);
+
+  IO.print("out", "Copy container files to docker env target...", cxt);
+
+  await Cluster.Control.exec(
+    [{ path: folder, type: "folder" }],
+    async ([folder], innerClusterContext, cxt) => {
+      const cmds = [
+        "mkdir -p " + containerBuildPath(params),
+        "cp -rf " + path.join(folder, "*") + " " + containerBuildPath(params)
+      ];
+
+      return await innerClusterContext(cmds.join(";"), {}, cxt);
+    },
+    {},
+    cxt
+  );
+
+  IO.print("info", performer.performerid + " initialized", cxt);
 };
 
 export const start = (params, cxt) => {
@@ -78,17 +153,21 @@ export const start = (params, cxt) => {
 
     const startOp = async (operation, cxt) => {
       await build(operation, params, cxt);
-      const watcher = Watcher.watch(dockerFile, () => {
-        IO.print("warning", "Dockerfile changed...", cxt);
 
-        build(operation, params, cxt);
-      });
+      const watcher = chokidar
+        .watch(dockerFile, {
+          ignoreInitial: true
+        })
+        .on("all", (event, path) => {
+          IO.print("warning", "Dockerfile changed...", cxt);
+          build(operation, params, cxt);
+        });
 
       while (operation.status !== "stopping") {
         await wait(10);
       }
 
-      Watcher.stop(watcher);
+      watcher.close();
     };
 
     return {
@@ -100,6 +179,8 @@ export const start = (params, cxt) => {
 
 const build = async (operation, params, cxt) => {
   const {
+    performer,
+    performers,
     performer: {
       code: {
         paths: {
@@ -111,46 +192,25 @@ const build = async (operation, params, cxt) => {
     config: { cluster }
   } = params;
 
-  const deps = await Dependencies.list(
-    {
-      module: {
-        code: {
-          paths: {
-            absolute: {
-              folder
-            }
-          }
-        }
-      }
-    },
-    cxt
-  );
-
-  const dep = _.find(deps, {
-    kind: "inner"
-  });
-
-  if (!dep) {
-    return null;
-  }
-
   try {
     if (cluster && cluster.target === "minikube") {
-      IO.print("info", "Building container to minikube...", cxt);
+      IO.print("info", "Building container to minikube..", cxt);
     }
 
+    const dockerFile = path.join(folder, "Dockerfile");
+
     const buildout = await Cluster.Control.exec(
-      [{ path: folder, type: "folder" }],
-      async ([folder], innerClusterContext, cxt) => {
+      [{ path: dockerFile, type: "file" }],
+      async ([dockerFile], innerClusterContext, cxt) => {
         const cmds = [
-          "docker build  -t " +
-            dep.fullname +
-            ":" +
-            dep.version +
-            " -t " +
-            dep.fullname +
+          "cp -u " +
+            dockerFile +
+            " " +
+            path.join(containerBuildPath(params), "Dockerfile"),
+          "docker build -t " +
+            performer.module.fullname +
             ":linked --build-arg CACHEBUST=$(date +%s) " +
-            folder
+            containerBuildPath(params)
         ];
 
         if (cluster && cluster.target === "minikube") {
