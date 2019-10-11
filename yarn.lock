@@ -9,12 +9,12 @@
   dependencies:
     regenerator-runtime "^0.13.2"
 
-"@nebulario/core-cluster@1.70.0-bundle-cluster-prod":
-  version "1.70.0-bundle-cluster-prod"
-  resolved "https://registry.yarnpkg.com/@nebulario/core-cluster/-/core-cluster-1.70.0-bundle-cluster-prod.tgz#09d80f79c89684cdeaae3171ef54e5939ef99b07"
-  integrity sha512-wDPXXVx0gMYyhEVXhEiK7bvknkJdAVGdKNsKtlHzVZganQACa89cQZl7hbiSddxRSeqQbhiMHInehBV/va8UGg==
+"@nebulario/core-cluster@1.70.2-master":
+  version "1.70.2-master"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-cluster/-/core-cluster-1.70.2-master.tgz#500ee4b265f68519e90f68d53c7024f4d3de7ace"
+  integrity sha512-UWU8OBHOjxquFR+V4tVDlQNQK2+ArO6Do6xOsOGa3iNbcqaYC7GPEggjSoANaemjF8WJ2TUQ6tFmWu0ibcXp9Q==
   dependencies:
-    "@nebulario/core-config" "1.70.0-bundle-cluster-prod"
+    "@nebulario/core-config" "1.70.5-master"
     "@nebulario/core-json" "1.70.1-master"
     "@nebulario/core-process" "1.70.1-master"
     "@nebulario/core-repository" "1.70.1-master"
@@ -25,10 +25,10 @@
     lodash "^4.17.4"
     uuid "^3.3.3"
 
-"@nebulario/core-config@1.70.0-bundle-cluster-prod":
-  version "1.70.0-bundle-cluster-prod"
-  resolved "https://registry.yarnpkg.com/@nebulario/core-config/-/core-config-1.70.0-bundle-cluster-prod.tgz#ffa2ecc3c66c8ff1fc96ef284bfb19c840703519"
-  integrity sha512-1bjq0LVl+cnU9a81WylaFAjRqJY0XSZ+AGM0ydGB3AWzmBQ4E67Wl3pnChQaChYz0ZKZTEktXqG0qTrH3B+ndA==
+"@nebulario/core-config@1.70.5-master":
+  version "1.70.5-master"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-config/-/core-config-1.70.5-master.tgz#e14276c6e254aa3e1fb4543f26adf3b75746327a"
+  integrity sha512-X5qHdKIIw1ztDm1C9ZQUZ9JlxGT0KBB/PURjCvCv49kD/43ukNGwF0RknL4LqbWn0ZupcarGabqUL8DZSn6+hw==
   dependencies:
     "@nebulario/core-json" "1.70.1-master"
     "@nebulario/core-repository" "1.70.1-master"
@@ -58,10 +58,10 @@
     tree-kill "^1.2.0"
     yamljs "^0.3.0"
 
-"@nebulario/core-plugin-request@1.70.0-bundle-cluster-prod":
-  version "1.70.0-bundle-cluster-prod"
-  resolved "https://registry.yarnpkg.com/@nebulario/core-plugin-request/-/core-plugin-request-1.70.0-bundle-cluster-prod.tgz#90c255809530420cf7942bed95b291bcd89f1a06"
-  integrity sha512-qXq/arIOF5u+udO6fmlpRwOaEVnu+GggeWF7EBfl65iCLrP28ShUOpjssp+//N+T5Cktz6gcO5lF0ikGhZjFdA==
+"@nebulario/core-plugin-request@1.70.11-master":
+  version "1.70.11-master"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-plugin-request/-/core-plugin-request-1.70.11-master.tgz#7c998b178b158f79635a6bc572320a5058c59286"
+  integrity sha512-Psf/KqlxgxzI1mbjW96lVmfBLrMt19YEWa34rbP14FKRt1S75D7It3duKHcITUKhv3x11GNc951fWdMYhhv0bA==
   dependencies:
     "@nebulario/core-process" "1.70.1-master"
     axios "^0.19.0"
