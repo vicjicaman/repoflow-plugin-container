@@ -9,21 +9,9 @@
   dependencies:
     regenerator-runtime "^0.13.2"
 
-"@nebulario/core-cluster@1.70.2-master":
-  version "1.70.2-master"
-  resolved "https://registry.yarnpkg.com/@nebulario/core-cluster/-/core-cluster-1.70.2-master.tgz#500ee4b265f68519e90f68d53c7024f4d3de7ace"
-  integrity sha512-UWU8OBHOjxquFR+V4tVDlQNQK2+ArO6Do6xOsOGa3iNbcqaYC7GPEggjSoANaemjF8WJ2TUQ6tFmWu0ibcXp9Q==
-  dependencies:
-    "@nebulario/core-config" "1.70.5-master"
-    "@nebulario/core-json" "1.70.1-master"
-    "@nebulario/core-process" "1.70.1-master"
-    "@nebulario/core-repository" "1.70.1-master"
-    babel-runtime "^6.26.0"
-    bluebird "^3.5.1"
-    child-process-promise "^2.2.1"
-    fs-extra "^8.1.0"
-    lodash "^4.17.4"
-    uuid "^3.3.3"
+"@nebulario/core-cluster@link:../core-cluster":
+  version "0.0.0"
+  uid ""
 
 "@nebulario/core-config@1.70.5-master":
   version "1.70.5-master"
