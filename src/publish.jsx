@@ -1,7 +1,11 @@
-import {
-  Publish
-} from '@nebulario/core-plugin-request';
+import { Publish } from "@nebulario/core-plugin-request";
 
 export const publish = async (params, cxt) => {
-  return await Publish.publish('http://localhost:8000/build', params, cxt);
-}
+  let serverUrl = "http://localhost:8000/build";
+
+  if (params.config.build) {
+    serverUrl = params.config.build.url;
+  }
+
+  return await Publish.publish(serverUrl, params, cxt);
+};
