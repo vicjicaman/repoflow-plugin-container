@@ -9,10 +9,10 @@
   dependencies:
     regenerator-runtime "^0.13.2"
 
-"@nebulario/core-cluster@1.70.2-master":
-  version "1.70.2-master"
-  resolved "https://registry.yarnpkg.com/@nebulario/core-cluster/-/core-cluster-1.70.2-master.tgz#500ee4b265f68519e90f68d53c7024f4d3de7ace"
-  integrity sha512-UWU8OBHOjxquFR+V4tVDlQNQK2+ArO6Do6xOsOGa3iNbcqaYC7GPEggjSoANaemjF8WJ2TUQ6tFmWu0ibcXp9Q==
+"@nebulario/core-cluster@1.70.3-master":
+  version "1.70.3-master"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-cluster/-/core-cluster-1.70.3-master.tgz#2c4bb7ecbe86dfdf93983b02b11fc1908b752f31"
+  integrity sha512-6ErlK8CrRKpWhkF6/2ZVQ06fp24GyejHUf1RGKwCQPHDnqFkMSWsNwFe4YBS3vuLTT0pG1SkGBYheT1ZRvVSDA==
   dependencies:
     "@nebulario/core-config" "1.70.5-master"
     "@nebulario/core-json" "1.70.1-master"

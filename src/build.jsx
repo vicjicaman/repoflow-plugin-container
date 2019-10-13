@@ -113,7 +113,7 @@ export const init = async (params, cxt) => {
       cxt
     );
 
-    IO.print("info", "Linked production package ready!", cxt);
+    IO.print("info", "Production package ready!", cxt);
   }
 
   IO.print("out", "Install App packages...", cxt);
