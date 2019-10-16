@@ -1,6 +1,6 @@
+import * as Version from "./version";
 import * as Dependencies from "./dependencies";
 import * as Build from "./build";
+import * as Utils from "./utils";
 
-const version = "version-json";
-
-export { version, Dependencies, Build };
+export { Version, Dependencies, Build, Utils };

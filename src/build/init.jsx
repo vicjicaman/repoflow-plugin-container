@@ -1,25 +1,27 @@
+import { wait, spawn, exec } from "@nebulario/core-process";
+import { Operation, IO } from "@nebulario/core-plugin-request";
 import _ from "lodash";
 import fs from "fs";
 import path from "path";
-import { exec, spawn, wait } from "@nebulario/core-process";
-import * as JsonUtil from "@nebulario/core-json";
+import * as JsonUtils from "@nebulario/core-json";
+import * as Remote from "@nebulario/core-remote";
 import * as Performer from "@nebulario/core-performer";
 import chokidar from "chokidar";
+import * as Utils from "../utils";
+import { Utils as NpmPluginUtils } from "@nebulario/repoflow-plugin-npm";
 
 export const start = async (operation, params, cxt) => {
   const {
-    payload,
-    module: mod,
+    performers,
     performer,
     performer: {
-      performerid,
+      dependents,
       type,
       code: {
         paths: {
           absolute: { folder }
         }
       },
-      dependents,
       module: { dependencies },
       output: {
         paths: {
@@ -27,89 +29,44 @@ export const start = async (operation, params, cxt) => {
         }
       }
     },
-    performers,
-    task: { taskid }
+    config: { cluster },
+    instance: { instanceid }
   } = params;
 
-  const chdlr = {
-    onOutput: ({ data }) => operation.print("out", data, cxt)
-  };
-
   if (type === "instanced") {
-    Performer.link(performer, performers, {
-      onLinked: depPerformer => {
-        if (depPerformer.module.type === "npm") {
-          operation.print(
-            "info",
-            depPerformer.performerid + " npm linked!",
-            cxt
-          );
-
-          const dependentDependencies = _.filter(
-            dependencies,
-            dependency => dependency.moduleid === depPerformer.performerid
-          );
-
-          for (const depdep of dependentDependencies) {
-            const { filename, path } = depdep;
-
-            JsonUtil.sync(folder, {
-              filename,
-              path,
-              version: "link:./../" + depPerformer.performerid
-            });
-          }
-        }
-      }
-    });
-
-    const prodFolder = outputFolder;
-    const copts = {
-      cwd: folder
-    };
-
-    await exec(["mkdir -p " + prodFolder], copts, {}, cxt);
-
-    if (fs.existsSync(path.join(folder, "yarn.lock"))) {
-      await exec(
-        ["cp -u yarn.lock " + path.join(prodFolder, "yarn.lock ")],
-        copts,
-        {},
-        cxt
-      );
-    }
-
-    await exec(
-      ["cp -u package.json " + path.join(prodFolder, "package.json")],
-      copts,
-      {},
-      cxt
-    );
-
-    const prodps = operation.spawn(
-      "yarn",
-      [("install", "--check-files", "--production=true")],
+    await NpmPluginUtils.init(
+      operation,
       {
-        cwd: prodFolder
+        performer,
+        performers,
+        folders: {
+          code: folder,
+          output: outputFolder
+        }
       },
-      chdlr,
       cxt
     );
-    await prodps.promise;
-    operation.print("info", "Linked production package ready!", cxt);
+
+    operation.print("out", "Copy container files to docker env target...", cxt);
+    const remotePath = Utils.getContainerBuildPath(params);
+    const remps = await Remote.context(
+      { host: "localhost", user: "victor" },
+      [{ path: folder, type: "folder" }],
+      async ([folder], cxt) => {
+        const cmds = [
+          "rm -R " + remotePath,
+          "mkdir -p " + remotePath,
+          "cp -rf " + path.join(folder, "*") + " " + remotePath
+        ];
+        return cmds.join(";");
+      },
+      {
+        spawn: operation.spawn
+      },
+      cxt
+    );
+
+    await remps.promise;
+    operation.print("info", performer.performerid + " initialized", cxt);
   }
-
-  const devps = operation.spawn(
-    "yarn",
-    ["install", "--check-files"],
-    {
-      cwd: folder
-    },
-    chdlr,
-    cxt
-  );
-
-  await devps.promise;
-
-  operation.print("info", "Linked development package ready!", cxt);
 };
