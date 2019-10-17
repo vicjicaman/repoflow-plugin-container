@@ -59,39 +59,76 @@ const builder = async (operation, params, cxt) => {
       },
       payload
     },
+    instance: { instanceid },
     config: { cluster }
   } = params;
 
   operation.print("info", "Building container...", cxt);
 
-  const dockerFile = path.join(folder, "Dockerfile");
-  const buildPath = Utils.getContainerBuildPath(params);
+  if (cluster) {
+    const dockerFile = path.join(folder, "Dockerfile");
+    const buildPath = Utils.getContainerBuildPath(params);
 
-  const buildps = await Remote.context(
-    { host: "localhost", user: "victor" },
-    [{ path: dockerFile, type: "file" }],
-    async ([dockerFile], cxt) => {
-      const cmds = [
-        "cp -u " + dockerFile + " " + path.join(buildPath, "Dockerfile"),
-        "docker build -t " +
-          performer.module.fullname +
-          ":linked --build-arg CACHEBUST=$(date +%s) " +
-          buildPath
-      ];
+    operation.print(
+      "warning",
+      "Building to remote: " +
+        cluster.target +
+        " " +
+        cluster.user +
+        "@" +
+        cluster.host,
+      cxt
+    );
 
-      /*if (cluster && cluster.target === "minikube") {
-        cmds.unshift("eval $(minikube docker-env)");
-      }*/
+    const buildps = await Remote.context(
+      { host: cluster.host, user: cluster.user },
+      [{ path: dockerFile, type: "file" }],
+      async ([dockerFile], cxt) => {
+        const cmds = [
+          "cp -u " + dockerFile + " " + path.join(buildPath, "Dockerfile"),
+          "docker build -t " +
+            performer.module.fullname +
+            ":linked -t " +
+            performer.module.fullname +
+            ":" +
+            instanceid +
+            " --build-arg CACHEBUST=$(date +%s) " +
+            buildPath
+        ];
 
-      return cmds.join(";");
-    },
-    {
-      spawn: operation.spawn
-    },
-    cxt
-  );
+        if (cluster.target === "minikube") {
+          cmds.unshift("eval '$(minikube docker-env)'");
+        }
 
-  await buildps.promise;
+        return cmds.join(";");
+      },
+      {
+        spawn: operation.spawn
+      },
+      cxt
+    );
+
+    await buildps.promise;
+  } else {
+    const buildps = operation.spawn(
+      "docker",
+      [
+        "build",
+        "-t",
+        performer.module.fullname + ":" + instanceid,
+        "-t",
+        performer.module.fullname + ":linked",
+        "--build-arg",
+        "CACHEBUST=$(date +%s)",
+        folder
+      ],
+      {},
+      {},
+      cxt
+    );
+
+    await buildps.promise;
+  }
 
   operation.print("info", "Container build!", cxt);
   operation.event("done");

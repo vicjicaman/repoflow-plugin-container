@@ -43,26 +43,33 @@ export const start = async (operation, params, cxt) => {
       cxt
     );
 
-    operation.print("out", "Copy container files to docker env target...", cxt);
-    const remotePath = Utils.getContainerBuildPath(params);
-    const remps = await Remote.context(
-      { host: "localhost", user: "victor" },
-      [{ path: folder, type: "folder" }],
-      async ([folder], cxt) => {
-        const cmds = [
-          "rm -R " + remotePath,
-          "mkdir -p " + remotePath,
-          "cp -rf " + path.join(folder, "*") + " " + remotePath
-        ];
-        return cmds.join(";");
-      },
-      {
-        spawn: operation.spawn
-      },
-      cxt
-    );
+    if (cluster) {
+      operation.print(
+        "warning",
+        "Copy container files to " + cluster.user + "@" + cluster.host,
+        cxt
+      );
+      const remotePath = Utils.getContainerBuildPath(params);
+      const remps = await Remote.context(
+        { host: cluster.host, user: cluster.user },
+        [{ path: folder, type: "folder" }],
+        async ([folder], cxt) => {
+          const cmds = [
+            "rm -Rf " + remotePath,
+            "mkdir -p " + remotePath,
+            "cp -rf " + path.join(folder, "*") + " " + remotePath
+          ];
+          return cmds.join(";");
+        },
+        {
+          spawn: operation.spawn
+        },
+        cxt
+      );
 
-    await remps.promise;
+      await remps.promise;
+    }
+
     operation.print("info", performer.performerid + " initialized", cxt);
   }
 };
