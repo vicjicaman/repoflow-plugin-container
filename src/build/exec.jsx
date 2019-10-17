@@ -24,22 +24,26 @@ export const start = async (operation, params, cxt) => {
 
     await builder(operation, params, cxt);
 
-    /*const dockerFile = path.join(folder, "Dockerfile");
+    const dockerFile = path.join(folder, "Dockerfile");
     const watcher = chokidar
       .watch(dockerFile, {
         ignoreInitial: true
       })
       .on("all", (event, path) => {
         operation.print("warning", "Dockerfile changed...", cxt);
-        build(operation, params, cxt);
+
+        operation
+          .reset()
+          .then(() => builder(operation, params, cxt))
+          .catch(e => operation.print("warning", e.toString(), cxt));
       });
 
-    while (operation.status !== "stopping") {
+    while (operation.status !== "stop") {
       await wait(10);
     }
 
+    operation.print("out", "Stop watchers...", cxt);
     watcher.close();
-  */
   }
 };
 
@@ -58,20 +62,7 @@ const builder = async (operation, params, cxt) => {
     config: { cluster }
   } = params;
 
-  operation.print(
-    "info",
-    "Building container...",
-    cxt
-  ); /*.catch(e =>
-      operation.event(
-        "error",
-        {
-          type: "plugin-container.remote.build",
-          error: e.toString()
-        },
-        cxt
-      )
-    );*/
+  operation.print("info", "Building container...", cxt);
 
   const dockerFile = path.join(folder, "Dockerfile");
   const buildPath = Utils.getContainerBuildPath(params);
@@ -88,9 +79,9 @@ const builder = async (operation, params, cxt) => {
           buildPath
       ];
 
-      //if (cluster && cluster.target === "minikube") {
-      //    cmds.unshift("eval $(minikube docker-env)");
-      //    }
+      /*if (cluster && cluster.target === "minikube") {
+        cmds.unshift("eval $(minikube docker-env)");
+      }*/
 
       return cmds.join(";");
     },
