@@ -26,7 +26,8 @@ export const start = async (operation, params, cxt) => {
       }
     },
     config: { cluster },
-    instance: { instanceid }
+    instance: { instanceid },
+    config
   } = params;
 
   if (type === "instanced") {
@@ -38,26 +39,33 @@ export const start = async (operation, params, cxt) => {
         folders: {
           code: folder,
           output: outputFolder
-        }
+        },
+        config
       },
       cxt
     );
 
-    if (cluster) {
+    if (cluster && cluster.node && performer.linked) {
       operation.print(
         "warning",
-        "Copy container files to " + cluster.user + "@" + cluster.host,
+        "Copy container file to " +
+          cluster.node.user +
+          "@" +
+          cluster.node.host +
+          ":" +
+          cluster.node.port,
         cxt
       );
-      const remotePath = Utils.getContainerBuildPath(params);
+
+      const remotePath = Utils.getRemotePath(params);
+      const dockerFile = path.join(folder, "Dockerfile");
       const remps = await Remote.context(
-        { host: cluster.host, user: cluster.user },
-        [{ path: folder, type: "folder" }],
-        async ([folder], cxt) => {
+        cluster.node,
+        [{ path: dockerFile, type: "file" }],
+        async ([dockerFile], cxt) => {
           const cmds = [
-            "rm -Rf " + remotePath,
             "mkdir -p " + remotePath,
-            "cp -rf " + path.join(folder, "*") + " " + remotePath
+            "cp -u " + dockerFile + " " + path.join(remotePath, "Dockerfile")
           ];
           return cmds.join(";");
         },

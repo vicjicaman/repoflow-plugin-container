@@ -65,23 +65,23 @@ const builder = async (operation, params, cxt) => {
 
   operation.print("info", "Building container...", cxt);
 
-  if (cluster) {
+  if (cluster && cluster.node) {
     const dockerFile = path.join(folder, "Dockerfile");
-    const buildPath = Utils.getContainerBuildPath(params);
+    const buildPath = Utils.getRemotePath(params);
 
     operation.print(
       "warning",
       "Building to remote: " +
-        cluster.target +
-        " " +
-        cluster.user +
+        cluster.node.user +
         "@" +
-        cluster.host,
+        cluster.node.host +
+        ":" +
+        cluster.node.port,
       cxt
     );
 
     const buildps = await Remote.context(
-      { host: cluster.host, user: cluster.user },
+      cluster.node,
       [{ path: dockerFile, type: "file" }],
       async ([dockerFile], cxt) => {
         const cmds = [
@@ -96,9 +96,9 @@ const builder = async (operation, params, cxt) => {
             buildPath
         ];
 
-        if (cluster.target === "minikube") {
+        /*if (cluster.target === "minikube") {
           cmds.unshift("eval '$(minikube docker-env)'");
-        }
+        }*/
 
         return cmds.join(";");
       },

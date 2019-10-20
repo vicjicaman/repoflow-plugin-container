@@ -27,10 +27,17 @@ export const getLinkedApp = (contPerf, performers) => {
 };
 
 
-export const getContainerBuildPath = ({ performer, instance: { instanceid } }) =>
+export const getRemotePath = ({
+  performer,
+  config: {
+    cluster: {
+      instanceid
+    }
+  }
+}) =>
   path.join(
     "${HOME}/repoflow/instances",
     instanceid,
-    "containers",
+    "modules",
     performer.performerid
   );
