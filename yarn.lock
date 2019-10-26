@@ -53,10 +53,10 @@
     lodash "^4.17.4"
     uuid "^3.3.2"
 
-"@nebulario/core-remote@1.70.0-plugin-service-prod":
-  version "1.70.0-plugin-service-prod"
-  resolved "https://registry.yarnpkg.com/@nebulario/core-remote/-/core-remote-1.70.0-plugin-service-prod.tgz#3cb2a8dea03afb27742c696e000ed79e52ea4fc9"
-  integrity sha512-O2R4jKQ2O4Y+Xzw+ai4vJoodfLdlo4lqJSSY5Z750e0H3MDOA/cfIBmwetuf7PgKaTxxtXlBFSN+TSQVTX3i0w==
+"@nebulario/core-remote@1.70.1-plugin-service-prod":
+  version "1.70.1-plugin-service-prod"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-remote/-/core-remote-1.70.1-plugin-service-prod.tgz#ac5347298c2c2e3a59521de04dcd6badcdc7a5d9"
+  integrity sha512-qznB1sdNm+BwXb5H4byCJoM3hsnYmjuhIfFnqjQ4b6W3RDG+7/0O9q00TSgPeudoHR10T0i25q9ya3nMrS+Kvg==
   dependencies:
     "@nebulario/core-json" "1.70.1-master"
     "@nebulario/core-process" "1.70.1-master"
@@ -67,16 +67,16 @@
     lodash "^4.17.4"
     uuid "^3.3.3"
 
-"@nebulario/repoflow-plugin-npm@1.70.0-plugin-service-prod":
-  version "1.70.0-plugin-service-prod"
-  resolved "https://registry.yarnpkg.com/@nebulario/repoflow-plugin-npm/-/repoflow-plugin-npm-1.70.0-plugin-service-prod.tgz#2d73a814378b6bcad8a325b6ff88815461c2c718"
-  integrity sha512-rZJiO9UqUkggLkEwEp78fi+C6RvaQu/9rR8MINirWgY9BH+Xkv3f/ZWXyuQB8AHabhUfQsLqNNz3EqeNeJfDEQ==
+"@nebulario/repoflow-plugin-npm@1.70.1-plugin-service-prod":
+  version "1.70.1-plugin-service-prod"
+  resolved "https://registry.yarnpkg.com/@nebulario/repoflow-plugin-npm/-/repoflow-plugin-npm-1.70.1-plugin-service-prod.tgz#ebd8b33b84bd3d74d4f9506261137d776f72cd1a"
+  integrity sha512-Bz+AGOz69ZVsm7Mt66TOMwt/fG9jdRULmUcpivzDBNWbW2gfN29IpYgBbq0eluRo0BhOQBKo+FcUrRMTQtaeNA==
   dependencies:
     "@nebulario/core-json" "1.70.1-master"
     "@nebulario/core-performer" "1.70.0-master"
     "@nebulario/core-plugin-request" "1.70.11-master"
     "@nebulario/core-process" "1.70.1-master"
-    "@nebulario/core-remote" "1.70.0-plugin-service-prod"
+    "@nebulario/core-remote" "1.70.1-plugin-service-prod"
     axios "^0.18.0"
     babel-runtime "^6.26.0"
     bluebird "^3.5.1"
