@@ -36,7 +36,7 @@
     "analyze": "webpack --config webpack.config.js --env.analyze"
   },
   "dependencies": {
-    "@nebulario/core-remote": "link:./../core-remote",
+    "@nebulario/core-remote": "1.70.1-plugin-service-prod",
     "@nebulario/core-json": "1.70.1-master",
     "@nebulario/core-performer": "1.70.0-master",
     "@nebulario/core-plugin-request": "1.70.11-master",
