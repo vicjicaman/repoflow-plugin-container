@@ -67,10 +67,10 @@
     lodash "^4.17.4"
     uuid "^3.3.3"
 
-"@nebulario/repoflow-plugin-npm@1.70.5-plugin-service-prod":
-  version "1.70.5-plugin-service-prod"
-  resolved "https://registry.yarnpkg.com/@nebulario/repoflow-plugin-npm/-/repoflow-plugin-npm-1.70.5-plugin-service-prod.tgz#de35e0d76a4f2907230635cf82c3078a17e9c78b"
-  integrity sha512-su9gSZJ6DjzAuCDmWYGYKEqvpp4ku1lU/qDVFrjYCUagqCeRAYb9xw5oPjA3Mm55EhA7U2c90U/xY3usvxglGA==
+"@nebulario/repoflow-plugin-npm@1.70.6-plugin-service-prod":
+  version "1.70.6-plugin-service-prod"
+  resolved "https://registry.yarnpkg.com/@nebulario/repoflow-plugin-npm/-/repoflow-plugin-npm-1.70.6-plugin-service-prod.tgz#c39537d68082aad460fcdcdb5ce2cbaf4bfbf666"
+  integrity sha512-OfToRLqfoOsBjtLw5upreUOmaNor12HL077cV7342xVHmFAuVcI5/BhLGdbgJFYpbPrWE0SfL2++DoPk+4cq3g==
   dependencies:
     "@nebulario/core-json" "1.70.1-master"
     "@nebulario/core-performer" "1.70.0-master"
