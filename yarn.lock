@@ -67,15 +67,19 @@
     lodash "^4.17.4"
     uuid "^3.3.3"
 
-"@nebulario/repoflow-plugin-npm@1.70.6-plugin-service-prod":
-  version "1.70.6-plugin-service-prod"
-  resolved "https://registry.yarnpkg.com/@nebulario/repoflow-plugin-npm/-/repoflow-plugin-npm-1.70.6-plugin-service-prod.tgz#c39537d68082aad460fcdcdb5ce2cbaf4bfbf666"
-  integrity sha512-OfToRLqfoOsBjtLw5upreUOmaNor12HL077cV7342xVHmFAuVcI5/BhLGdbgJFYpbPrWE0SfL2++DoPk+4cq3g==
+"@nebulario/core-remote@link:../core-remote":
+  version "0.0.0"
+  uid ""
+
+"@nebulario/repoflow-plugin-npm@1.70.7-plugin-service-prod":
+  version "1.70.7-plugin-service-prod"
+  resolved "https://registry.yarnpkg.com/@nebulario/repoflow-plugin-npm/-/repoflow-plugin-npm-1.70.7-plugin-service-prod.tgz#3633518df73e86aca8e7a36e1b9e097efe6f3dad"
+  integrity sha512-bB8wmyz2rrYQqEtXo9LaTs3nSy67Rpbo3Npo1YLZJg2V+AAMjTr6eDUlj6t3n9DfudX5Tm2oMlmMGJnnI1jvXw==
   dependencies:
     "@nebulario/core-json" "1.70.1-master"
     "@nebulario/core-performer" "1.70.0-master"
     "@nebulario/core-process" "1.70.1-master"
-    "@nebulario/core-remote" "1.70.1-plugin-service-prod"
+    "@nebulario/core-remote" "link:../../../../../../../../../../../../../../../.cache/yarn/v4/npm-@nebulario-repoflow-plugin-npm-1.70.7-plugin-service-prod-3633518df73e86aca8e7a36e1b9e097efe6f3dad/node_modules/@nebulario/core-remote"
     axios "^0.18.0"
     babel-runtime "^6.26.0"
     bluebird "^3.5.1"
