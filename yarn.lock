@@ -53,6 +53,9 @@
     lodash "^4.17.4"
     uuid "^3.3.2"
 
+"@nebulario/core-remote@link:../../../../../../../../../../../../../../../.cache/yarn/v4/npm-@nebulario-repoflow-plugin-npm-1.70.8-plugin-service-prod-4f67194ee4b203bf65c652587c5457a16e512819/node_modules/@nebulario/core-remote":
+  version "0.0.0"
+
 "@nebulario/core-remote@link:../core-remote":
   version "0.0.0"
   uid ""
