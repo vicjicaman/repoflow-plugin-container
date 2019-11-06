@@ -57,6 +57,13 @@
   version "0.0.0"
   uid ""
 
+"@nebulario/core-repository@1.70.1-master":
+  version "1.70.1-master"
+  resolved "https://registry.yarnpkg.com/@nebulario/core-repository/-/core-repository-1.70.1-master.tgz#33e5837e2a12313f4fb4a6cfe28e5acddc366df5"
+  integrity sha512-d/cCCYXXId0Pd+26uQgOtD7RpQgYuORG9kxKnZQR//XBcxBf55V45HyYBNWnQieehNErzuwHysJfYoUeUTzvAQ==
+  dependencies:
+    "@nebulario/core-process" "1.70.1-master"
+
 "@nebulario/repoflow-plugin-npm@link:../repoflow-plugin-npm":
   version "0.0.0"
   uid ""

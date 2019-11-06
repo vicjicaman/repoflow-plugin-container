@@ -40,6 +40,7 @@
     "@nebulario/core-json": "1.70.1-master",
     "@nebulario/core-performer": "1.70.0-master",
     "@nebulario/core-plugin-request": "1.70.11-master",
+    "@nebulario/core-repository": "1.70.1-master",
     "@nebulario/core-process": "1.70.1-master",
     "@nebulario/repoflow-plugin-npm": "link:./../repoflow-plugin-npm",
     "axios": "^0.18.0",
