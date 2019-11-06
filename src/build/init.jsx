@@ -90,12 +90,6 @@ export const start = async (operation, params, cxt) => {
 
     if (source.type === "folder") {
       if (isLinked) {
-        //execSync(`rm -R ${containerDistFolder};mkdir -p ${containerDistFolder}`);
-
-        /*const relativePath = path.relative(
-          path.join(folder, ".."),
-          containerDistFolder
-        );*/
 
         const relativeSourceFolder = `../${isLinked.performerid}`;
         operation.print("warning", `Linked to ../${isLinked.performerid}`, cxt);
