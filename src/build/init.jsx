@@ -35,6 +35,18 @@ export const start = async (operation, params, cxt) => {
   } = params;
 
   if (type === "instanced") {
+    const syncMsg = () =>
+      operation.print(
+        "warning",
+        "Sync container dist to remote cluster " +
+          cluster.node.user +
+          "@" +
+          cluster.node.host +
+          ":" +
+          cluster.node.port,
+        cxt
+      );
+
     const sourceContent = JsonUtils.load(path.join(folder, "container.json"));
     const { source } = sourceContent;
 
@@ -73,24 +85,35 @@ export const start = async (operation, params, cxt) => {
         },
         cxt
       );
-    }
 
-    if (cluster && cluster.node && performer.linked) {
-      operation.print(
-        "warning",
-        "Copy container file to " +
-          cluster.node.user +
-          "@" +
-          cluster.node.host +
-          ":" +
-          cluster.node.port,
-        cxt
-      );
+      if (cluster && cluster.node && performer.linked && !isLinked) {
+        const remotePath = Utils.getRemotePath(params);
+        const remoteDistPath = path.join(remotePath, "dist");
+
+        syncMsg();
+        const remdistps = await Remote.context(
+          cluster.node,
+          [{ path: containerDistFolder, type: "folder" }],
+          async ([distFolder], cxt) => {
+            const cmds = [
+              "rm -Rf " + remoteDistPath,
+              "mkdir -p " + remoteDistPath,
+              "cp -rf " + path.join(distFolder, "*") + " " + remoteDistPath
+            ];
+            return cmds.join(";");
+          },
+          {
+            spawn: operation.spawn
+          },
+          cxt
+        );
+
+        await remdistps.promise;
+      }
     }
 
     if (source.type === "folder") {
       if (isLinked) {
-
         const relativeSourceFolder = `../${isLinked.performerid}`;
         operation.print("warning", `Linked to ../${isLinked.performerid}`, cxt);
         fs.symlinkSync(relativeSourceFolder, containerDistFolder, "dir");
@@ -99,10 +122,11 @@ export const start = async (operation, params, cxt) => {
           const remotePath = Utils.getRemotePath(params);
           const remoteDistPath = path.join(remotePath, "dist");
 
+          syncMsg();
           const remdistps = await Remote.context(
             cluster.node,
             [{ path: containerDistFolder, type: "folder" }],
-            async ([distFolder, dockerFile], cxt) => {
+            async ([distFolder], cxt) => {
               const cmds = [
                 "rm -Rf " + remoteDistPath,
                 "ln -s " + relativeSourceFolder + " " + remoteDistPath
@@ -136,6 +160,7 @@ export const start = async (operation, params, cxt) => {
           const remotePath = Utils.getRemotePath(params);
           const remoteDistPath = path.join(remotePath, "dist");
 
+          syncMsg();
           const remdistps = await Remote.context(
             cluster.node,
             [{ path: containerDistFolder, type: "folder" }],

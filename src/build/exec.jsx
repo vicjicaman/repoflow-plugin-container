@@ -64,7 +64,13 @@ const builder = async (operation, params, cxt) => {
 
   operation.print("info", "Building container...", cxt);
 
-  if (cluster && cluster.node) {
+  if (
+    performer.linked &&
+    cluster &&
+    cluster.node &&
+    performer.config.cluster &&
+    performer.config.cluster.sync
+  ) {
     const dockerFile = path.join(folder, "Dockerfile");
     const buildPath = Utils.getRemotePath(params);
 
