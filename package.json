@@ -42,7 +42,7 @@
     "@nebulario/core-plugin-request": "1.70.11-master",
     "@nebulario/core-repository": "1.70.1-master",
     "@nebulario/core-process": "1.70.1-master",
-    "@nebulario/repoflow-plugin-npm": "1.70.16-master",
+    "@nebulario/repoflow-plugin-npm": "link:./../repoflow-plugin-npm",
     "axios": "^0.18.0",
     "babel-runtime": "^6.26.0",
     "bluebird": "^3.5.1",

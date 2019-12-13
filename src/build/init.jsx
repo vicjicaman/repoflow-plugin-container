@@ -60,9 +60,8 @@ export const start = async (operation, params, cxt) => {
     );
 
     execSync(`rm -Rf ${containerDistFolder}`);
+    execSync(`mkdir -p ${containerDistFolder}`);
     if (source.type === "npm") {
-      execSync(`mkdir -p ${containerDistFolder}`);
-
       const linkedVersion = isLinked
         ? `link:./../../${isLinked.performerid}`
         : source.version;
@@ -86,7 +85,12 @@ export const start = async (operation, params, cxt) => {
         cxt
       );
 
-      if (cluster && cluster.node && performer.linked && !isLinked) {
+      if (
+        cluster &&
+        cluster.node &&
+        performer.linked &&
+        performer.config.cluster.sync === true
+      ) {
         const remotePath = Utils.getRemotePath(params);
         const remoteDistPath = path.join(remotePath, "dist");
 
@@ -114,13 +118,28 @@ export const start = async (operation, params, cxt) => {
 
     if (source.type === "folder") {
       if (isLinked) {
-        const relativeSourceFolder = `../${isLinked.performerid}`;
-        operation.print("warning", `Linked to ../${isLinked.performerid}`, cxt);
-        fs.symlinkSync(relativeSourceFolder, containerDistFolder, "dir");
+        const relativeSourceFolder = `../../${isLinked.performerid}`;
+        operation.print("warning", `Linked to ../../${isLinked.performerid}`, cxt);
 
-        if (cluster && cluster.node && performer.linked) {
+        const containerDistFolderType = path.join(
+          containerDistFolder,
+          "folder"
+        );
+
+        execSync(`rm -Rf ${containerDistFolderType}`);
+        execSync(`mkdir -p ` + path.resolve(containerDistFolder));
+
+        fs.symlinkSync(relativeSourceFolder, containerDistFolderType, "dir");
+
+        if (
+          cluster &&
+          cluster.node &&
+          performer.linked &&
+          performer.config.cluster.sync === true
+        ) {
           const remotePath = Utils.getRemotePath(params);
           const remoteDistPath = path.join(remotePath, "dist");
+          const remoteDistPathType = path.join(remoteDistPath, "folder");
 
           syncMsg();
           const remdistps = await Remote.context(
@@ -128,8 +147,9 @@ export const start = async (operation, params, cxt) => {
             [{ path: containerDistFolder, type: "folder" }],
             async ([distFolder], cxt) => {
               const cmds = [
-                "rm -Rf " + remoteDistPath,
-                "ln -s " + relativeSourceFolder + " " + remoteDistPath
+                "rm -Rf " + remoteDistPathType,
+                "mkdir -p " + remoteDistPath,
+                "ln -s " + relativeSourceFolder + " " + remoteDistPathType
               ];
               return cmds.join(";");
             },
@@ -142,7 +162,6 @@ export const start = async (operation, params, cxt) => {
           await remdistps.promise;
         }
       } else {
-        execSync(`mkdir -p ${containerDistFolder}`);
         const sourceRepositoryId = containerDistFolder;
         try {
           await Repository.clone(source.fullname, sourceRepositoryId);
@@ -158,7 +177,7 @@ export const start = async (operation, params, cxt) => {
 
         if (cluster && cluster.node && performer.linked) {
           const remotePath = Utils.getRemotePath(params);
-          const remoteDistPath = path.join(remotePath, "dist");
+          const remoteDistPath = path.join(remotePath, "dist", "folder");
 
           syncMsg();
           const remdistps = await Remote.context(
@@ -183,7 +202,7 @@ export const start = async (operation, params, cxt) => {
       }
     }
 
-    if (cluster && cluster.node && performer.linked) {
+    if (cluster && cluster.node && performer.linked  && performer.config.cluster.sync === true ) {
       const remotePath = Utils.getRemotePath(params);
       const dockerFile = path.join(folder, "Dockerfile");
       const remoteDockerFile = path.join(remotePath, "Dockerfile");
